@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDoS Protection System for Cloud - Capstone Project</title>
+    <!-- Tailwind CSS and Inter Font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Lighter gray background */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .section-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+        .fade-in {
+            animation: fadeIn 1.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .gantt-bar {
+            position: absolute;
+            height: 1.5rem; /* 24px */
+            border-radius: 0.375rem; /* rounded-md */
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+        .gantt-bar:hover {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div class="container bg-white rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 fade-in">
+        
+        <!-- Header Section -->
+        <header class="text-center pb-6 mb-8 border-b-4 border-blue-600">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 tracking-tight">
+                DDoS Protection System for Cloud
+            </h1>
+            <p class="mt-3 text-lg text-gray-500">Architecture and Tools for a Resilient Cloud Infrastructure</p>
+        </header>
+
+        <!-- Project Overview Section -->
+        <section class="bg-blue-50 p-6 sm:p-8 rounded-xl shadow-inner mb-10 section-hover">
+            <h2 class="text-3xl font-bold text-blue-800 mb-6">Project Overview</h2>
+            <div class="space-y-6 text-gray-700 text-lg">
+                <p><strong class="font-semibold text-gray-900">Background:</strong> As organizations move to the cloud, their web applications become prime targets for Distributed Denial-of-Service (DDoS) attacks, which threaten service availability.</p>
+                <p><strong class="font-semibold text-gray-900">The Challenge:</strong> The primary difficulty is distinguishing a malicious DDoS attack from a legitimate traffic spike, as both can cause similar performance issues.</p>
+                <p><strong class="font-semibold text-gray-900">Project Goal:</strong> To develop a sophisticated analytics tool that accurately identifies various DDoS attack patterns in real-time—such as volumetric floods, uniform behavioral profiles, and unusual traffic timing—to effectively counter the threat and ensure service continuity.</p>
+            </div>
+        </section>
+
+        <!-- Team & Supervision Details -->
+        <section class="mb-10 section-hover bg-gray-50 p-6 rounded-xl">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Team & Supervision</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="font-semibold text-xl text-blue-900 mb-3">Project Team</h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><strong>20221CIT0009:</strong> H H HEMANTH KUMAR</li>
+                        <li><strong>20221CIT0040:</strong> AKARSH GURURAJU</li>
+                        <li><strong>20221CIT0029:</strong> SARFARZ B TONSHIYAL</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xl text-blue-900 mb-3">Guidance & Coordination</h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><strong>Supervisor:</strong> Dr. SHANTHI S</li>
+                        <li><strong>Head of Department:</strong> Dr. Anandaraj S.P</li>
+                        <li><strong>Program Coordinator:</strong> Dr. Sharmasth Vali</li>
+                        <li><strong>School Coordinators:</strong> Dr. Sampath A K, Dr. Geetha A</li>
+                    </ul>
+                </div>
+            </div>
+             <p class="mt-6 text-sm text-gray-500"><span class="font-semibold">Problem Statement Number:</span> PSCS_290 | <span class="font-semibold">Category:</span> Software</p>
+        </section>
+        
+        <!-- Core Objectives & Innovations -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+            <section class="section-hover bg-gray-50 p-6 rounded-xl">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Core Objectives</h2>
+                <ul class="list-decimal list-inside text-gray-600 space-y-3 text-lg">
+                    <li>Detect threats using AI and Machine Learning.</li>
+                    <li>Visualize network status on a real-time dashboard.</li>
+                    <li>Automate threat mitigation with AWS WAF integration.</li>
+                    <li>Create a tamper-proof audit log using Blockchain.</li>
+                    <li>Build a scalable and resilient microservices architecture.</li>
+                </ul>
+            </section>
+            <section class="section-hover bg-gray-50 p-6 rounded-xl">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Novel Contributions</h2>
+                 <ul class="list-decimal list-inside text-gray-600 space-y-3 text-lg">
+                    <li><strong class="text-gray-800">Hybrid ML Model:</strong> Combines Isolation Forest for speed with LSTM for deep analysis, resulting in superior detection.</li>
+                    <li><strong class="text-gray-800">Blockchain Audit Trail:</strong> Creates a tamper-proof, immutable log of all security events, guaranteeing data integrity.</li>
+                    <li><strong class="text-gray-800">End-to-End Automation:</strong> Implements a complete, closed-loop from threat detection to immediate, programmatic mitigation in the cloud.</li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Technology Stack -->
+        <section class="mb-10 section-hover bg-blue-50 p-6 sm:p-8 rounded-xl">
+            <h2 class="text-3xl font-bold text-blue-800 mb-6 text-center">Technology Stack</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-center">
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">Core Backend</h3>
+                    <p class="text-gray-600">Java (Spring Boot)</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">ML Service</h3>
+                    <p class="text-gray-600">Python (FastAPI)</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">Frontend</h3>
+                    <p class="text-gray-600">React.js</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">Data Ingest</h3>
+                    <p class="text-gray-600">Kafka / RabbitMQ</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">Time-Series DB</h3>
+                    <p class="text-gray-600">InfluxDB</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">Data Storage</h3>
+                    <p class="text-gray-600">PostgreSQL, Elasticsearch</p>
+                </div>
+                 <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">Cloud Integration</h3>
+                    <p class="text-gray-600">AWS SDK for Java</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg text-gray-800">Containerization</h3>
+                    <p class="text-gray-600">Docker</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Timeline / Gantt Chart -->
+        <section class="mb-10 section-hover bg-gray-50 p-6 rounded-xl">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Project Timeline (14 Weeks)</h2>
+            <div class="w-full relative h-64 md:h-48 pt-4">
+                <!-- Timeline Axis -->
+                <div class="absolute top-full w-full flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Aug 19</span>
+                    <span>Sep 02</span>
+                    <span>Sep 16</span>
+                    <span>Sep 30</span>
+                    <span>Oct 14</span>
+                    <span>Oct 28</span>
+                    <span>Nov 11</span>
+                    <span>Nov 25</span>
+                </div>
+                 <div class="absolute w-full h-px bg-gray-300 top-full"></div>
+                <!-- Phase 1 Bar -->
+                <div class="gantt-bar bg-green-500" style="left: 0%; width: 14%;" title="Phase 1: Aug 19 - Sep 01"></div>
+                <!-- Phase 2 Bar -->
+                <div class="gantt-bar bg-blue-500" style="left: 14%; width: 29%;" title="Phase 2: Sep 02 - Sep 29"></div>
+                <!-- Phase 3 Bar -->
+                <div class="gantt-bar bg-yellow-500" style="left: 43%; width: 29%;" title="Phase 3: Sep 30 - Oct 27"></div>
+                <!-- Phase 4 Bar -->
+                <div class="gantt-bar bg-red-500" style="left: 72%; width: 28%;" title="Phase 4: Oct 28 - Nov 24"></div>
+            </div>
+            <div class="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div class="flex items-center"><span class="h-4 w-4 rounded-full bg-green-500 mr-2"></span>Phase 1: Foundation & Backend Setup (2 Weeks)</div>
+                <div class="flex items-center"><span class="h-4 w-4 rounded-full bg-blue-500 mr-2"></span>Phase 2: Core Feature Development (4 Weeks)</div>
+                <div class="flex items-center"><span class="h-4 w-4 rounded-full bg-yellow-500 mr-2"></span>Phase 3: Integration & Advanced Features (4 Weeks)</div>
+                <div class="flex items-center"><span class="h-4 w-4 rounded-full bg-red-500 mr-2"></span>Phase 4: Testing & Finalization (4 Weeks)</div>
+            </div>
+        </section>
+
+        <!-- Github & References -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <section class="section-hover bg-gray-50 p-6 rounded-xl">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">GitHub Repository</h2>
+                <p class="text-gray-600 mb-4">The complete source code, documentation, and project artifacts are publicly available.</p>
+                <a href="https://github.com/ByteAcumen/DefenDDoS-Cloud" target="_blank" class="inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                    View on GitHub
+                </a>
+            </section>
+            <section class="section-hover bg-gray-50 p-6 rounded-xl">
+                 <h2 class="text-3xl font-bold text-gray-800 mb-4">References</h2>
+                 <ul class="list-disc list-inside text-gray-600 space-y-2 text-sm">
+                     <li>S. M. H. Dadgar, et al., "A DDoS Detection Method Based on Feature Engineering and Machine Learning..."</li>
+                     <li>Z. Zhong, "Anomaly Detection in Time Series Data using LSTM Autoencoders," Medium.</li>
+                     <li>A. Sharafaldin, et al., "A DDoS evaluation dataset (CIC-DDoS2019)..."</li>
+                 </ul>
+            </section>
+        </div>
+
+    </div>
+</body>
+</html>
