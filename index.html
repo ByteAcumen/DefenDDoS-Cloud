@@ -44,8 +44,21 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 2rem;
-            margin: 2rem;
+            margin: 1rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        @media (min-width: 768px) {
+            .main-container {
+                margin: 2rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-container {
+                margin: 0.5rem;
+                border-radius: 1rem;
+            }
         }
 
         .section-card {
@@ -213,146 +226,196 @@
             background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
             border-left: 4px solid #22c55e;
         }
+
+        /* Enhanced Mobile Responsiveness */
+        @media (max-width: 640px) {
+            .section-card {
+                border-radius: 1rem;
+            }
+            
+            .tooltip .tooltiptext {
+                width: 150px;
+                margin-left: -75px;
+                font-size: 0.75rem;
+                padding: 6px 10px;
+            }
+            
+            .gantt-bar {
+                min-height: 1rem;
+            }
+            
+            .feature-card {
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-container {
+                margin: 0.25rem;
+                border-radius: 0.75rem;
+            }
+            
+            .section-card {
+                border-radius: 0.75rem;
+            }
+        }
+
+        /* Touch-friendly interactive elements */
+        @media (hover: none) and (pointer: coarse) {
+            .section-card:hover {
+                transform: none;
+            }
+            
+            .feature-card:hover {
+                transform: none;
+            }
+            
+            .tech-icon:hover {
+                transform: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="main-container">
-        <main class="max-w-7xl mx-auto space-y-20 p-8">
+        <main class="max-w-7xl mx-auto space-y-10 sm:space-y-16 lg:space-y-20 p-4 sm:p-6 lg:p-8">
 
         <!-- Header Section -->
-        <header class="text-center p-16 bg-white rounded-3xl shadow-2xl animated-entry relative overflow-hidden">
+        <header class="text-center p-6 sm:p-10 lg:p-16 bg-white rounded-2xl lg:rounded-3xl shadow-2xl animated-entry relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50"></div>
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
             <div class="relative z-10">
-                <div class="flex justify-center items-center gap-6 mb-6">
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-6">
                     <div class="relative">
-                        <svg class="h-20 w-20 text-indigo-600 float-animation" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <svg class="h-16 w-16 sm:h-20 sm:w-20 text-indigo-600 float-animation" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286Zm0 13.036h.008v.008h-.008v-.008Z" />
                         </svg>
                         <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full animate-ping"></div>
                         <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full"></div>
                     </div>
-                    <h1 class="text-5xl md:text-7xl font-black gradient-text tracking-tight">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black gradient-text tracking-tight">
                         DefenDDoS-Cloud
                     </h1>
                 </div>
-                <p class="mt-6 text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
+                <p class="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl lg:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0">
                     An Intelligent, Cloud-Native DDoS Protection System Leveraging
                     <span class="font-bold text-indigo-600">Machine Learning</span>,
                     <span class="font-bold text-purple-600">Blockchain</span>, and
                     <span class="font-bold text-blue-600">Automated AWS WAF Integration</span>
                 </p>
-                <div class="mt-8 flex flex-wrap justify-center gap-4">
-                    <span class="px-4 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">Real-time Detection</span>
-                    <span class="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">Automated Mitigation</span>
-                    <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">Blockchain Audit</span>
-                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold">Cloud-Native</span>
+                <div class="mt-6 sm:mt-8 flex flex-wrap justify-center gap-2 sm:gap-4">
+                    <span class="px-3 py-2 sm:px-4 sm:py-2 bg-indigo-100 text-indigo-800 rounded-full text-xs sm:text-sm font-semibold">Real-time Detection</span>
+                    <span class="px-3 py-2 sm:px-4 sm:py-2 bg-purple-100 text-purple-800 rounded-full text-xs sm:text-sm font-semibold">Automated Mitigation</span>
+                    <span class="px-3 py-2 sm:px-4 sm:py-2 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm font-semibold">Blockchain Audit</span>
+                    <span class="px-3 py-2 sm:px-4 sm:py-2 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm font-semibold">Cloud-Native</span>
                 </div>
             </div>
         </header>
 
         <!-- Project Statistics -->
         <section class="animated-entry" style="animation-delay: 200ms;">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="stats-card p-6 rounded-2xl text-center">
-                    <div class="text-3xl font-bold text-indigo-600 mb-2">14</div>
-                    <div class="text-sm text-slate-600 font-medium">Weeks Duration</div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div class="stats-card p-4 sm:p-6 rounded-2xl text-center">
+                    <div class="text-2xl sm:text-3xl font-bold text-indigo-600 mb-2">14</div>
+                    <div class="text-xs sm:text-sm text-slate-600 font-medium">Weeks Duration</div>
                 </div>
-                <div class="stats-card p-6 rounded-2xl text-center">
-                    <div class="text-3xl font-bold text-purple-600 mb-2">10+</div>
-                    <div class="text-sm text-slate-600 font-medium">Technologies</div>
+                <div class="stats-card p-4 sm:p-6 rounded-2xl text-center">
+                    <div class="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">10+</div>
+                    <div class="text-xs sm:text-sm text-slate-600 font-medium">Technologies</div>
                 </div>
-                <div class="stats-card p-6 rounded-2xl text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">3</div>
-                    <div class="text-sm text-slate-600 font-medium">Team Members</div>
+                <div class="stats-card p-4 sm:p-6 rounded-2xl text-center">
+                    <div class="text-2xl sm:text-3xl font-bold text-blue-600 mb-2">3</div>
+                    <div class="text-xs sm:text-sm text-slate-600 font-medium">Team Members</div>
                 </div>
-                <div class="stats-card p-6 rounded-2xl text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">24/7</div>
-                    <div class="text-sm text-slate-600 font-medium">Protection</div>
+                <div class="stats-card p-4 sm:p-6 rounded-2xl text-center">
+                    <div class="text-2xl sm:text-3xl font-bold text-green-600 mb-2">24/7</div>
+                    <div class="text-xs sm:text-sm text-slate-600 font-medium">Protection</div>
                 </div>
             </div>
         </section>
 
         <!-- Project & Team Details -->
-        <section class="section-card p-10 animated-entry" style="animation-delay: 400ms;">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <section class="section-card p-6 sm:p-8 lg:p-10 animated-entry" style="animation-delay: 400ms;">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
                 <!-- Team Members -->
-                <div class="feature-card p-8 rounded-2xl">
-                    <h2 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <h2 class="text-xl sm:text-2xl font-bold text-indigo-700 mb-4 sm:mb-6 flex items-center gap-3">
                         <i class="fas fa-users text-indigo-500"></i>Project Team
                     </h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4 p-4 bg-indigo-50 rounded-xl">
-                            <div class="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold">HK</div>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-indigo-50 rounded-xl">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">HK</div>
                             <div>
-                                <div class="font-semibold text-slate-800">H H HEMANTH KUMAR</div>
-                                <div class="text-sm text-slate-600">20221CIT0009</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">H H HEMANTH KUMAR</div>
+                                <div class="text-xs sm:text-sm text-slate-600">20221CIT0009</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
-                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">AG</div>
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-purple-50 rounded-xl">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">AG</div>
                             <div>
-                                <div class="font-semibold text-slate-800">AKARSH GURURAJU</div>
-                                <div class="text-sm text-slate-600">20221CIT0040</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">AKARSH GURURAJU</div>
+                                <div class="text-xs sm:text-sm text-slate-600">20221CIT0040</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
-                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">ST</div>
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-blue-50 rounded-xl">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">ST</div>
                             <div>
-                                <div class="font-semibold text-slate-800">SARFARZ B TONSHIYAL</div>
-                                <div class="text-sm text-slate-600">20221CIT0029</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">SARFARZ B TONSHIYAL</div>
+                                <div class="text-xs sm:text-sm text-slate-600">20221CIT0029</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Supervision -->
-                <div class="feature-card p-8 rounded-2xl">
-                    <h2 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <h2 class="text-xl sm:text-2xl font-bold text-indigo-700 mb-4 sm:mb-6 flex items-center gap-3">
                         <i class="fas fa-chalkboard-teacher text-indigo-500"></i>Academic Supervision
                     </h2>
-                    <div class="space-y-4">
-                        <div class="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
-                            <div class="font-semibold text-slate-800 mb-1">Dr. SHANTHI S</div>
-                            <div class="text-sm text-slate-600">Project Supervisor</div>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="p-3 sm:p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
+                            <div class="font-semibold text-slate-800 mb-1 text-sm sm:text-base">Dr. SHANTHI S</div>
+                            <div class="text-xs sm:text-sm text-slate-600">Project Supervisor</div>
                             <div class="text-xs text-slate-500 mt-1">School of Computer Science and Engineering</div>
                         </div>
-                        <div class="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl">
-                            <div class="font-semibold text-slate-800 mb-1">Dr. Anandaraj S.P</div>
-                            <div class="text-sm text-slate-600">Head of Department</div>
+                        <div class="p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl">
+                            <div class="font-semibold text-slate-800 mb-1 text-sm sm:text-base">Dr. Anandaraj S.P</div>
+                            <div class="text-xs sm:text-sm text-slate-600">Head of Department</div>
                         </div>
-                        <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                            <div class="font-semibold text-slate-800 mb-1">Dr. Sharmasth Vali</div>
-                            <div class="text-sm text-slate-600">Project Coordinator</div>
+                        <div class="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                            <div class="font-semibold text-slate-800 mb-1 text-sm sm:text-base">Dr. Sharmasth Vali</div>
+                            <div class="text-xs sm:text-sm text-slate-600">Project Coordinator</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Project Info -->
-                <div class="feature-card p-8 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50">
-                    <h2 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                <div class="feature-card p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50">
+                    <h2 class="text-xl sm:text-2xl font-bold text-indigo-700 mb-4 sm:mb-6 flex items-center gap-3">
                         <i class="fas fa-info-circle text-indigo-500"></i>Project Details
                     </h2>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span class="font-medium text-slate-700">Program</span>
-                            <span class="text-slate-600">CSE7101 – Capstone</span>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700 text-sm sm:text-base">Program</span>
+                            <span class="text-slate-600 text-xs sm:text-sm">CSE7101 – Capstone</span>
                         </div>
-                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span class="font-medium text-slate-700">Problem No</span>
-                            <span class="text-slate-600 font-mono">PSCS_290</span>
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700 text-sm sm:text-base">Problem No</span>
+                            <span class="text-slate-600 font-mono text-xs sm:text-sm">PSCS_290</span>
                         </div>
-                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span class="font-medium text-slate-700">Category</span>
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">Software</span>
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700 text-sm sm:text-base">Category</span>
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs sm:text-sm">Software</span>
                         </div>
-                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span class="font-medium text-slate-700">Organization</span>
-                            <span class="text-slate-600">Presidency University</span>
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700 text-sm sm:text-base">Organization</span>
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700 text-sm sm:text-base">Organization</span>
+                            <span class="text-slate-600 text-xs sm:text-sm">Presidency University</span>
                         </div>
-                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-                            <span class="font-medium text-slate-700">Duration</span>
-                            <span class="text-slate-600">14 Weeks</span>
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700 text-sm sm:text-base">Duration</span>
+                            <span class="text-slate-600 text-xs sm:text-sm">14 Weeks</span>
                         </div>
                     </div>
                 </div>
@@ -360,29 +423,29 @@
         </section>
 
         <!-- Problem Statement & Background -->
-        <section class="section-card p-10 animated-entry" style="animation-delay: 600ms;">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-extrabold gradient-text mb-4">Problem Statement & Background</h2>
-                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Understanding the critical challenges in cloud security and DDoS protection</p>
+        <section class="section-card p-6 sm:p-8 lg:p-10 animated-entry" style="animation-delay: 600ms;">
+            <div class="text-center mb-8 sm:mb-12">
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold gradient-text mb-4">Problem Statement & Background</h2>
+                <p class="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto px-4 sm:px-0">Understanding the critical challenges in cloud security and DDoS protection</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div class="space-y-8">
-                    <div class="feature-card p-8 rounded-2xl">
-                        <h3 class="text-2xl font-bold text-red-600 mb-4 flex items-center gap-3">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
+                <div class="space-y-6 sm:space-y-8">
+                    <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                        <h3 class="text-xl sm:text-2xl font-bold text-red-600 mb-4 flex items-center gap-3">
                             <i class="fas fa-exclamation-triangle"></i>The Growing Threat
                         </h3>
-                        <div class="space-y-4 text-lg text-slate-600 leading-relaxed">
+                        <div class="space-y-3 sm:space-y-4 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed">
                             <p>As organizations increasingly migrate their applications and services to the cloud, they face a <strong class="text-red-600">heightened risk of Distributed Denial-of-Service (DDoS) attacks</strong>.</p>
                             <p>These attacks overwhelm cloud-hosted services, making them unavailable to legitimate users and causing <strong class="text-red-600">significant business losses</strong>.</p>
                         </div>
                     </div>
 
-                    <div class="feature-card p-8 rounded-2xl">
-                        <h3 class="text-2xl font-bold text-orange-600 mb-4 flex items-center gap-3">
+                    <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                        <h3 class="text-xl sm:text-2xl font-bold text-orange-600 mb-4 flex items-center gap-3">
                             <i class="fas fa-puzzle-piece"></i>The Core Challenge
                         </h3>
-                        <div class="space-y-4 text-lg text-slate-600 leading-relaxed">
+                        <div class="space-y-3 sm:space-y-4 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed">
                             <p>The key challenge lies in <strong class="text-orange-600">differentiating malicious DDoS attacks from genuine traffic surges</strong> (e.g., flash sales or sudden user activity).</p>
                             <p>Both scenarios create similar traffic patterns, making detection complex and requiring sophisticated analysis.</p>
                         </div>
@@ -451,40 +514,40 @@
             </div>
         </section>
         <!-- Challenges & Solutions -->
-        <section class="section-card p-10 animated-entry" style="animation-delay: 800ms;">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-extrabold gradient-text mb-4">Challenges & Innovative Solutions</h2>
-                <p class="text-xl text-slate-600 max-w-3xl mx-auto">How we tackle the most complex problems in DDoS protection</p>
+        <section class="section-card p-6 sm:p-8 lg:p-10 animated-entry" style="animation-delay: 800ms;">
+            <div class="text-center mb-8 sm:mb-12">
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold gradient-text mb-4">Challenges & Innovative Solutions</h2>
+                <p class="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto px-4 sm:px-0">How we tackle the most complex problems in DDoS protection</p>
             </div>
 
-            <div class="space-y-8">
-                <div class="challenge-solution p-8 rounded-2xl">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div class="space-y-6 sm:space-y-8">
+                <div class="challenge-solution p-6 sm:p-8 rounded-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
                         <div>
-                            <h3 class="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-3">
+                            <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-700 mb-3 sm:mb-4 flex items-center gap-3">
                                 <i class="fas fa-exclamation-circle"></i>Challenge: High-Volume Traffic Processing
                             </h3>
-                            <p class="text-lg text-slate-600 mb-4">Processing huge volumes of traffic in real-time without performance degradation or system overload.</p>
+                            <p class="text-sm sm:text-base lg:text-lg text-slate-600 mb-4">Processing huge volumes of traffic in real-time without performance degradation or system overload.</p>
                         </div>
                         <div>
-                            <h3 class="text-2xl font-bold text-green-700 mb-4 flex items-center gap-3">
+                            <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-green-700 mb-3 sm:mb-4 flex items-center gap-3">
                                 <i class="fas fa-lightbulb"></i>Solution: Scalable Data Pipeline
                             </h3>
-                            <p class="text-lg text-slate-600">Scalable data pipeline with hybrid ML models for efficient real-time processing and analysis.</p>
+                            <p class="text-sm sm:text-base lg:text-lg text-slate-600">Scalable data pipeline with hybrid ML models for efficient real-time processing and analysis.</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="challenge-solution p-8 rounded-2xl">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="challenge-solution p-6 sm:p-8 rounded-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
                         <div>
-                            <h3 class="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-3">
+                            <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-700 mb-3 sm:mb-4 flex items-center gap-3">
                                 <i class="fas fa-exclamation-circle"></i>Challenge: Slow Manual Intervention
                             </h3>
-                            <p class="text-lg text-slate-600 mb-4">Manual response to attacks is too slow, allowing significant damage before mitigation.</p>
+                            <p class="text-sm sm:text-base lg:text-lg text-slate-600 mb-4">Manual response to attacks is too slow, allowing significant damage before mitigation.</p>
                         </div>
                         <div>
-                            <h3 class="text-2xl font-bold text-green-700 mb-4 flex items-center gap-3">
+                            <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-green-700 mb-3 sm:mb-4 flex items-center gap-3">
                                 <i class="fas fa-lightbulb"></i>Solution: End-to-End Automation
                             </h3>
                             <p class="text-lg text-slate-600">Complete automation with instant IP blocking, minimizing response time to milliseconds.</p>
@@ -658,83 +721,83 @@
         </section>
         
         <!-- Technology Stack -->
-        <section class="section-card p-10 animated-entry" style="animation-delay: 1400ms;">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-extrabold gradient-text mb-4">Comprehensive Technology Stack</h2>
-                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Modern, scalable technologies powering our DDoS protection system</p>
+        <section class="section-card p-6 sm:p-8 lg:p-10 animated-entry" style="animation-delay: 1400ms;">
+            <div class="text-center mb-8 sm:mb-12">
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold gradient-text mb-4">Comprehensive Technology Stack</h2>
+                <p class="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto px-4 sm:px-0">Modern, scalable technologies powering our DDoS protection system</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
                 <!-- Backend Technologies -->
-                <div class="feature-card p-8 rounded-2xl">
-                    <h3 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-indigo-700 mb-4 sm:mb-6 flex items-center gap-3">
                         <i class="fas fa-server text-indigo-500"></i>Backend & Core Services
                     </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4 p-4 bg-red-50 rounded-xl">
-                            <i class="fab fa-java text-3xl text-red-500 tech-icon"></i>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-red-50 rounded-xl">
+                            <i class="fab fa-java text-2xl sm:text-3xl text-red-500 tech-icon"></i>
                             <div>
-                                <div class="font-semibold text-slate-800">Java 21 (Spring Boot)</div>
-                                <div class="text-sm text-slate-600">Core backend services & API gateway</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">Java 21 (Spring Boot)</div>
+                                <div class="text-xs sm:text-sm text-slate-600">Core backend services & API gateway</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
-                            <i class="fab fa-python text-3xl text-blue-500 tech-icon"></i>
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-blue-50 rounded-xl">
+                            <i class="fab fa-python text-2xl sm:text-3xl text-blue-500 tech-icon"></i>
                             <div>
-                                <div class="font-semibold text-slate-800">Python 3.11+ (FastAPI)</div>
-                                <div class="text-sm text-slate-600">ML service & blockchain logging</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">Python 3.11+ (FastAPI)</div>
+                                <div class="text-xs sm:text-sm text-slate-600">ML service & blockchain logging</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 p-4 bg-orange-50 rounded-xl">
-                            <i class="fas fa-stream text-3xl text-orange-500 tech-icon"></i>
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-orange-50 rounded-xl">
+                            <i class="fas fa-stream text-2xl sm:text-3xl text-orange-500 tech-icon"></i>
                             <div>
-                                <div class="font-semibold text-slate-800">Apache Kafka / RabbitMQ</div>
-                                <div class="text-sm text-slate-600">High-throughput message processing</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">Apache Kafka / RabbitMQ</div>
+                                <div class="text-xs sm:text-sm text-slate-600">High-throughput message processing</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Data & ML Technologies -->
-                <div class="feature-card p-8 rounded-2xl">
-                    <h3 class="text-2xl font-bold text-purple-700 mb-6 flex items-center gap-3">
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-700 mb-4 sm:mb-6 flex items-center gap-3">
                         <i class="fas fa-database text-purple-500"></i>Data & Machine Learning
                     </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
-                            <i class="fas fa-database text-3xl text-purple-500 tech-icon"></i>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-purple-50 rounded-xl">
+                            <i class="fas fa-database text-2xl sm:text-3xl text-purple-500 tech-icon"></i>
                             <div>
-                                <div class="font-semibold text-slate-800">PostgreSQL & InfluxDB</div>
-                                <div class="text-sm text-slate-600">Relational & time-series data storage</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">PostgreSQL & InfluxDB</div>
+                                <div class="text-xs sm:text-sm text-slate-600">Relational & time-series data storage</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl">
-                            <i class="fas fa-search text-3xl text-yellow-600 tech-icon"></i>
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-yellow-50 rounded-xl">
+                            <i class="fas fa-search text-2xl sm:text-3xl text-yellow-600 tech-icon"></i>
                             <div>
-                                <div class="font-semibold text-slate-800">Elasticsearch</div>
-                                <div class="text-sm text-slate-600">Log analysis & search capabilities</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">Elasticsearch</div>
+                                <div class="text-xs sm:text-sm text-slate-600">Log analysis & search capabilities</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
-                            <i class="fas fa-brain text-3xl text-green-500 tech-icon"></i>
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-green-50 rounded-xl">
+                            <i class="fas fa-brain text-2xl sm:text-3xl text-green-500 tech-icon"></i>
                             <div>
-                                <div class="font-semibold text-slate-800">Scikit-learn & TensorFlow</div>
-                                <div class="text-sm text-slate-600">ML models & deep learning</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">Scikit-learn & TensorFlow</div>
+                                <div class="text-xs sm:text-sm text-slate-600">ML models & deep learning</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Frontend & Cloud -->
-                <div class="feature-card p-8 rounded-2xl">
-                    <h3 class="text-2xl font-bold text-blue-700 mb-6 flex items-center gap-3">
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-700 mb-4 sm:mb-6 flex items-center gap-3">
                         <i class="fas fa-cloud text-blue-500"></i>Frontend & Cloud Services
                     </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4 p-4 bg-sky-50 rounded-xl">
-                            <i class="fab fa-react text-3xl text-sky-400 tech-icon"></i>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-sky-50 rounded-xl">
+                            <i class="fab fa-react text-2xl sm:text-3xl text-sky-400 tech-icon"></i>
                             <div>
-                                <div class="font-semibold text-slate-800">React.js</div>
+                                <div class="font-semibold text-slate-800 text-sm sm:text-base">React.js</div>
                                 <div class="text-sm text-slate-600">Real-time monitoring dashboard</div>
                             </div>
                         </div>
@@ -907,54 +970,123 @@
         </section>
 
         <!-- Project Timeline -->
-        <section class="section-card p-10 animated-entry" style="animation-delay: 1800ms;">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-extrabold gradient-text mb-4">Project Timeline (14 Weeks)</h2>
-                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Structured development phases from concept to deployment</p>
+        <section class="section-card p-6 sm:p-8 lg:p-10 animated-entry" style="animation-delay: 1800ms;">
+            <div class="text-center mb-8 sm:mb-12">
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold gradient-text mb-4">Project Timeline (14 Weeks)</h2>
+                <p class="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto px-4 sm:px-0">Structured development phases from concept to deployment</p>
             </div>
 
-            <div class="space-y-8">
-                <!-- Timeline Header -->
-                <div class="grid grid-cols-7 text-center font-semibold text-slate-600 text-sm bg-slate-50 p-4 rounded-xl">
+            <div class="space-y-6 sm:space-y-8">
+                <!-- Timeline Header - Hidden on mobile, shown on desktop -->
+                <div class="hidden lg:grid grid-cols-7 text-center font-semibold text-slate-600 text-sm bg-slate-50 p-4 rounded-xl">
                     <span>Aug W3-4</span><span>Sep W1-2</span><span>Sep W3-4</span><span>Oct W1-2</span><span>Oct W3-4</span><span>Nov W1-2</span><span>Nov W3-4</span>
                 </div>
 
-                <!-- Phase 1: Foundation -->
-                <div class="tooltip w-full">
-                    <span class="tooltiptext">Phase 1: Foundation & Setup (Aug 19 - Sep 01)<br>• Project setup & architecture design<br>• Technology stack configuration<br>• Initial prototyping</span>
-                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
-                        <div class="gantt-bar bg-gradient-to-r from-green-500 to-green-600 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="width: 14.3%;">
-                            <i class="fas fa-foundation mr-2"></i>Foundation & Setup
+                <!-- Mobile Timeline - Stack phases vertically on mobile -->
+                <div class="lg:hidden space-y-4">
+                    <!-- Phase 1: Foundation -->
+                    <div class="feature-card p-4 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-foundation text-white text-sm"></i>
+                            </div>
+                            <h3 class="font-semibold text-slate-800">Foundation & Setup</h3>
                         </div>
+                        <p class="text-sm text-slate-600 mb-2">Aug 19 - Sep 01</p>
+                        <ul class="text-xs text-slate-600 space-y-1">
+                            <li>• Project setup & architecture design</li>
+                            <li>• Technology stack configuration</li>
+                            <li>• Initial prototyping</li>
+                        </ul>
+                    </div>
+
+                    <!-- Phase 2: Core Development -->
+                    <div class="feature-card p-4 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-code text-white text-sm"></i>
+                            </div>
+                            <h3 class="font-semibold text-slate-800">Core Development</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-2">Sep 02 - Sep 29</p>
+                        <ul class="text-xs text-slate-600 space-y-1">
+                            <li>• ML model development</li>
+                            <li>• Backend services implementation</li>
+                            <li>• Database design & setup</li>
+                        </ul>
+                    </div>
+
+                    <!-- Phase 3: Integration -->
+                    <div class="feature-card p-4 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-puzzle-piece text-white text-sm"></i>
+                            </div>
+                            <h3 class="font-semibold text-slate-800">Integration & Features</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-2">Sep 30 - Oct 27</p>
+                        <ul class="text-xs text-slate-600 space-y-1">
+                            <li>• System integration</li>
+                            <li>• Frontend dashboard development</li>
+                            <li>• AWS WAF integration</li>
+                        </ul>
+                    </div>
+
+                    <!-- Phase 4: Testing & Deployment -->
+                    <div class="feature-card p-4 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-rocket text-white text-sm"></i>
+                            </div>
+                            <h3 class="font-semibold text-slate-800">Testing & Deployment</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-2">Oct 28 - Nov 24</p>
+                        <ul class="text-xs text-slate-600 space-y-1">
+                            <li>• Comprehensive testing</li>
+                            <li>• Performance optimization</li>
+                            <li>• Documentation & deployment</li>
+                        </ul>
                     </div>
                 </div>
 
-                <!-- Phase 2: Core Development -->
-                <div class="tooltip w-full">
-                    <span class="tooltiptext">Phase 2: Core Development (Sep 02 - Sep 29)<br>• ML model development<br>• Backend services implementation<br>• Database design & setup</span>
-                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
-                        <div class="gantt-bar bg-gradient-to-r from-blue-500 to-blue-600 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 14.3%; width: 28.6%;">
-                            <i class="fas fa-code mr-2"></i>Core Development
+                <!-- Desktop Timeline - Gantt Chart -->
+                <div class="hidden lg:block space-y-4">
+                    <!-- Phase 1: Foundation -->
+                    <div class="tooltip w-full">
+                        <span class="tooltiptext">Phase 1: Foundation & Setup (Aug 19 - Sep 01)<br>• Project setup & architecture design<br>• Technology stack configuration<br>• Initial prototyping</span>
+                        <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                            <div class="gantt-bar bg-gradient-to-r from-green-500 to-green-600 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="width: 14.3%;">
+                                <i class="fas fa-foundation mr-2"></i>Foundation & Setup
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Phase 3: Integration -->
-                <div class="tooltip w-full">
-                    <span class="tooltiptext">Phase 3: Integration & Features (Sep 30 - Oct 27)<br>• System integration<br>• Frontend dashboard development<br>• AWS WAF integration</span>
-                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
-                        <div class="gantt-bar bg-gradient-to-r from-yellow-500 to-orange-500 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 42.9%; width: 28.6%;">
-                            <i class="fas fa-puzzle-piece mr-2"></i>Integration & Features
+                    <!-- Phase 2: Core Development -->
+                    <div class="tooltip w-full">
+                        <span class="tooltiptext">Phase 2: Core Development (Sep 02 - Sep 29)<br>• ML model development<br>• Backend services implementation<br>• Database design & setup</span>
+                        <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                            <div class="gantt-bar bg-gradient-to-r from-blue-500 to-blue-600 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 14.3%; width: 28.6%;">
+                                <i class="fas fa-code mr-2"></i>Core Development
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Phase 4: Testing & Deployment -->
-                <div class="tooltip w-full">
-                    <span class="tooltiptext">Phase 4: Testing & Deployment (Oct 28 - Nov 24)<br>• Comprehensive testing<br>• Performance optimization<br>• Documentation & deployment</span>
-                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
-                        <div class="gantt-bar bg-gradient-to-r from-red-500 to-pink-500 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 71.5%; width: 28.5%;">
-                            <i class="fas fa-rocket mr-2"></i>Testing & Deployment
+                    <!-- Phase 3: Integration -->
+                    <div class="tooltip w-full">
+                        <span class="tooltiptext">Phase 3: Integration & Features (Sep 30 - Oct 27)<br>• System integration<br>• Frontend dashboard development<br>• AWS WAF integration</span>
+                        <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                            <div class="gantt-bar bg-gradient-to-r from-yellow-500 to-orange-500 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 42.9%; width: 28.6%;">
+                                <i class="fas fa-puzzle-piece mr-2"></i>Integration & Features
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 4: Testing & Deployment -->
+                    <div class="tooltip w-full">
+                        <span class="tooltiptext">Phase 4: Testing & Deployment (Oct 28 - Nov 24)<br>• Comprehensive testing<br>• Performance optimization<br>• Documentation & deployment</span>
+                        <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                            <div class="gantt-bar bg-gradient-to-r from-red-500 to-pink-500 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 71.5%; width: 28.5%;">
+                                <i class="fas fa-rocket mr-2"></i>Testing & Deployment
                         </div>
                     </div>
                 </div>
@@ -1077,49 +1209,53 @@
         </section>
 
         <!-- Academic References -->
-        <section class="section-card p-10 animated-entry" style="animation-delay: 2200ms;">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-extrabold gradient-text mb-4">Academic References & Research</h2>
-                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Scientific foundation and research backing our implementation</p>
+        <section class="section-card p-6 sm:p-8 lg:p-10 animated-entry" style="animation-delay: 2200ms;">
+            <div class="text-center mb-8 sm:mb-12">
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold gradient-text mb-4">Academic References & Research</h2>
+                <p class="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto px-4 sm:px-0">Scientific foundation and research backing our implementation</p>
             </div>
 
-            <div class="space-y-6">
-                <div class="feature-card p-8 rounded-2xl">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">1</div>
+            <div class="space-y-4 sm:space-y-6">
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <div class="flex items-start gap-3 sm:gap-4">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm sm:text-base">1</div>
                         <div>
-                            <h4 class="font-bold text-slate-800 mb-2">DDoS Detection in Software-Defined Networks</h4>
-                            <p class="text-slate-600 mb-3">
+                            <h4 class="font-bold text-slate-800 mb-2 text-sm sm:text-base">DDoS Detection in Software-Defined Networks</h4>
+                            <p class="text-slate-600 mb-3 text-xs sm:text-sm lg:text-base">
                                 S. M. H. Dadgar, M. T. T. Araghi, and M. A. M. Balafar, "A DDoS Detection Method Based on Feature Engineering and Machine Learning in Software-Defined Networks,"
                                 <em class="text-indigo-600">MDPI Sensors</em>, vol. 23, no. 13, p. 6176, Jul. 2023.
                             </p>
-                            <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">Machine Learning</span>
-                            <span class="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Feature Engineering</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="inline-block px-2 py-1 sm:px-3 sm:py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs sm:text-sm">Machine Learning</span>
+                                <span class="inline-block px-2 py-1 sm:px-3 sm:py-1 bg-purple-100 text-purple-800 rounded-full text-xs sm:text-sm">Feature Engineering</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="feature-card p-8 rounded-2xl">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">2</div>
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <div class="flex items-start gap-3 sm:gap-4">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm sm:text-base">2</div>
                         <div>
-                            <h4 class="font-bold text-slate-800 mb-2">LSTM Autoencoders for Anomaly Detection</h4>
-                            <p class="text-slate-600 mb-3">
+                            <h4 class="font-bold text-slate-800 mb-2 text-sm sm:text-base">LSTM Autoencoders for Anomaly Detection</h4>
+                            <p class="text-slate-600 mb-3 text-xs sm:text-sm lg:text-base">
                                 Z. Zhong, "Anomaly Detection in Time Series Data using LSTM Autoencoders,"
                                 <em class="text-purple-600">Medium</em>, Aug. 12, 2025.
                             </p>
-                            <span class="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Deep Learning</span>
-                            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Time Series</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="inline-block px-2 py-1 sm:px-3 sm:py-1 bg-purple-100 text-purple-800 rounded-full text-xs sm:text-sm">Deep Learning</span>
+                                <span class="inline-block px-2 py-1 sm:px-3 sm:py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm">Time Series</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="feature-card p-8 rounded-2xl">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">3</div>
+                <div class="feature-card p-6 sm:p-8 rounded-2xl">
+                    <div class="flex items-start gap-3 sm:gap-4">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm sm:text-base">3</div>
                         <div>
-                            <h4 class="font-bold text-slate-800 mb-2">CIC-DDoS2019 Evaluation Dataset</h4>
-                            <p class="text-slate-600 mb-3">
+                            <h4 class="font-bold text-slate-800 mb-2 text-sm sm:text-base">CIC-DDoS2019 Evaluation Dataset</h4>
+                            <p class="text-slate-600 mb-3 text-xs sm:text-sm lg:text-base">
                                 A. Sharafaldin, A. H. Lashkari, and A. A. Ghorbani, "A DDoS evaluation dataset (CIC-DDoS2019),"
                                 <em class="text-blue-600">University of New Brunswick</em>, 2019.
                             </p>
@@ -1161,27 +1297,27 @@
         </section>
 
         <!-- Footer -->
-        <footer class="text-center mt-16 py-12 border-t border-slate-200">
-            <div class="max-w-4xl mx-auto">
-                <div class="flex justify-center items-center gap-4 mb-6">
-                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-shield-alt text-white text-xl"></i>
+        <footer class="text-center mt-12 sm:mt-16 py-8 sm:py-12 border-t border-slate-200">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6">
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-lg sm:text-xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold gradient-text">DefenDDoS-Cloud</h3>
+                    <h3 class="text-xl sm:text-2xl font-bold gradient-text">DefenDDoS-Cloud</h3>
                 </div>
-                <p class="text-lg text-slate-600 mb-4">
+                <p class="text-base sm:text-lg text-slate-600 mb-4">
                     An innovative capstone project by Computer Science Engineering students at Presidency University
                 </p>
-                <div class="flex justify-center gap-8 mb-6 text-sm text-slate-500">
+                <div class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mb-4 sm:mb-6 text-xs sm:text-sm text-slate-500">
                     <span>Problem Statement: PSCS_290</span>
-                    <span>•</span>
+                    <span class="hidden sm:inline">•</span>
                     <span>Duration: 14 Weeks</span>
-                    <span>•</span>
+                    <span class="hidden sm:inline">•</span>
                     <span>Category: Software</span>
                 </div>
-                <div class="text-slate-500">
+                <div class="text-slate-500 text-sm sm:text-base">
                     <p>&copy; 2025 DefenDDoS-Cloud Team | Presidency University</p>
-                    <p class="text-sm mt-2">Supervised by Dr. Shanthi S | School of Computer Science and Engineering</p>
+                    <p class="text-xs sm:text-sm mt-2">Supervised by Dr. Shanthi S | School of Computer Science and Engineering</p>
                 </div>
             </div>
         </footer>
