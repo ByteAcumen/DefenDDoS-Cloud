@@ -11,232 +11,1182 @@
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --accent-primary: #4f46e5;
+            --accent-secondary: #3b82f6;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9; /* slate-100 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
         }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            margin: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
         .section-card {
-            background-color: white;
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--card-bg);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            position: relative;
+            overflow: hidden;
         }
+
+        .section-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .section-card:hover::before {
+            transform: scaleX(1);
+        }
+
         .section-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
-        .fade-in {
-            animation: fadeIn 1.2s ease-out forwards;
+
+        .animated-entry {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out forwards;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .flow-arrow {
-            color: #94a3b8; /* slate-400 */
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .gradient-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.4s ease;
+        }
+
+        .feature-card:hover {
+            background: linear-gradient(145deg, #f8fafc 0%, #ffffff 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+        }
+
         .tech-icon {
-            font-size: 2.5rem; /* text-4xl */
-            margin-bottom: 0.5rem; /* mb-2 */
+            transition: all 0.3s ease;
+            filter: grayscale(0.3);
+        }
+
+        .tech-icon:hover {
+            transform: scale(1.2) rotate(5deg);
+            filter: grayscale(0);
+        }
+
+        .gantt-bar-bg {
+            background: linear-gradient(90deg, #e5e7eb 0%, #d1d5db 100%);
+            border-radius: 1rem;
+        }
+        .gantt-bar {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gantt-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 2px solid rgba(79, 70, 229, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+            border-color: rgba(79, 70, 229, 0.4);
+        }
+
+        .challenge-solution {
+            background: linear-gradient(145deg, #fef7ff 0%, #f3e8ff 100%);
+            border-left: 4px solid #8b5cf6;
+        }
+
+        .innovation-highlight {
+            background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid #22c55e;
         }
     </style>
 </head>
-<body class="p-4 sm:p-6 lg:p-8">
-    <main class="max-w-7xl mx-auto space-y-12">
+<body>
+    <div class="main-container">
+        <main class="max-w-7xl mx-auto space-y-20 p-8">
 
         <!-- Header Section -->
-        <header class="text-center p-8 bg-white rounded-xl shadow-lg fade-in">
-            <div class="flex justify-center items-center gap-4">
-                 <svg class="h-12 w-12 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286Zm0 13.036h.008v.008h-.008v-.008Z" />
-                </svg>
-                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 tracking-tight">
-                    DDoS Protection System for Cloud
-                </h1>
+        <header class="text-center p-16 bg-white rounded-3xl shadow-2xl animated-entry relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50"></div>
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <div class="relative z-10">
+                <div class="flex justify-center items-center gap-6 mb-6">
+                    <div class="relative">
+                        <svg class="h-20 w-20 text-indigo-600 float-animation" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286Zm0 13.036h.008v.008h-.008v-.008Z" />
+                        </svg>
+                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full animate-ping"></div>
+                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full"></div>
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-black gradient-text tracking-tight">
+                        DefenDDoS-Cloud
+                    </h1>
+                </div>
+                <p class="mt-6 text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
+                    An Intelligent, Cloud-Native DDoS Protection System Leveraging
+                    <span class="font-bold text-indigo-600">Machine Learning</span>,
+                    <span class="font-bold text-purple-600">Blockchain</span>, and
+                    <span class="font-bold text-blue-600">Automated AWS WAF Integration</span>
+                </p>
+                <div class="mt-8 flex flex-wrap justify-center gap-4">
+                    <span class="px-4 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">Real-time Detection</span>
+                    <span class="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">Automated Mitigation</span>
+                    <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">Blockchain Audit</span>
+                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold">Cloud-Native</span>
+                </div>
             </div>
-            <p class="mt-4 text-lg text-slate-500">An Intelligent, Cloud-Native Architecture with Machine Learning and Blockchain</p>
         </header>
 
-        <!-- Project & Team Details -->
-        <section class="section-card p-8 fade-in" style="animation-delay: 100ms;">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Team Members -->
-                <div class="lg:col-span-1">
-                    <h2 class="text-2xl font-bold text-indigo-700 mb-4">Project Team</h2>
-                    <ul class="space-y-3 text-slate-600">
-                        <li><strong class="font-semibold text-slate-800">20221CIT0009:</strong> H H HEMANTH KUMAR</li>
-                        <li><strong class="font-semibold text-slate-800">20221CIT0040:</strong> AKARSH GURURAJU</li>
-                        <li><strong class="font-semibold text-slate-800">20221CIT0029:</strong> SARFARZ B TONSHIYAL</li>
-                    </ul>
+        <!-- Project Statistics -->
+        <section class="animated-entry" style="animation-delay: 200ms;">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="stats-card p-6 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-indigo-600 mb-2">14</div>
+                    <div class="text-sm text-slate-600 font-medium">Weeks Duration</div>
                 </div>
-                <!-- Supervision -->
-                <div class="lg:col-span-1">
-                    <h2 class="text-2xl font-bold text-indigo-700 mb-4">Supervision & Guidance</h2>
-                    <ul class="space-y-3 text-slate-600">
-                        <li><strong class="font-semibold text-slate-800">Supervisor:</strong> Dr. SHANTHI S</li>
-                        <li><strong class="font-semibold text-slate-800">Head of Dept:</strong> Dr. Anandaraj S.P</li>
-                        <li><strong class="font-semibold text-slate-800">Program Coordinator:</strong> Dr.Sharmasth Vali</li>
-                    </ul>
+                <div class="stats-card p-6 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">10+</div>
+                    <div class="text-sm text-slate-600 font-medium">Technologies</div>
                 </div>
-                <!-- Project Info -->
-                <div class="lg:col-span-1 bg-slate-50 p-6 rounded-lg">
-                    <h2 class="text-2xl font-bold text-indigo-700 mb-4">Project Information</h2>
-                    <ul class="space-y-3 text-slate-600">
-                        <li><strong class="font-semibold text-slate-800">Program:</strong> CSE7101 – Capstone Project</li>
-                        <li><strong class="font-semibold text-slate-800">Problem No:</strong> PSCS_290</li>
-                        <li><strong class="font-semibold text-slate-800">Category:</strong> Software</li>
-                        <li><strong class="font-semibold text-slate-800">School Coordinators:</strong> Dr. Sampath A K, Dr. Geetha A</li>
-                    </ul>
+                <div class="stats-card p-6 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">3</div>
+                    <div class="text-sm text-slate-600 font-medium">Team Members</div>
+                </div>
+                <div class="stats-card p-6 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">24/7</div>
+                    <div class="text-sm text-slate-600 font-medium">Protection</div>
                 </div>
             </div>
         </section>
 
-        <!-- Problem Statement & Goal -->
-        <section class="section-card p-8 fade-in" style="animation-delay: 200ms;">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6">Problem Statement & Goal</h2>
-            <div class="space-y-4 text-lg text-slate-600 leading-relaxed">
-                <p><strong class="font-semibold text-slate-900">Background:</strong> As organizations move to the cloud, their web applications become prime targets for Distributed Denial-of-Service (DDoS) attacks, which threaten service availability.</p>
-                <p><strong class="font-semibold text-slate-900">The Challenge:</strong> The primary difficulty is distinguishing a malicious DDoS attack from a legitimate traffic spike, as both can cause similar performance issues. An intelligent and automated real-time defense system is needed.</p>
-                <p><strong class="font-semibold text-slate-900">Project Goal:</strong> To develop a sophisticated analytics tool that accurately identifies various DDoS attack patterns in real-time—such as volumetric floods, uniform behavioral profiles, and unusual traffic timing—to effectively counter the threat and ensure service continuity.</p>
+        <!-- Project & Team Details -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 400ms;">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <!-- Team Members -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-users text-indigo-500"></i>Project Team
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 bg-indigo-50 rounded-xl">
+                            <div class="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold">HK</div>
+                            <div>
+                                <div class="font-semibold text-slate-800">H H HEMANTH KUMAR</div>
+                                <div class="text-sm text-slate-600">20221CIT0009</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">AG</div>
+                            <div>
+                                <div class="font-semibold text-slate-800">AKARSH GURURAJU</div>
+                                <div class="text-sm text-slate-600">20221CIT0040</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">ST</div>
+                            <div>
+                                <div class="font-semibold text-slate-800">SARFARZ B TONSHIYAL</div>
+                                <div class="text-sm text-slate-600">20221CIT0029</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Supervision -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-chalkboard-teacher text-indigo-500"></i>Academic Supervision
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
+                            <div class="font-semibold text-slate-800 mb-1">Dr. SHANTHI S</div>
+                            <div class="text-sm text-slate-600">Project Supervisor</div>
+                            <div class="text-xs text-slate-500 mt-1">School of Computer Science and Engineering</div>
+                        </div>
+                        <div class="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl">
+                            <div class="font-semibold text-slate-800 mb-1">Dr. Anandaraj S.P</div>
+                            <div class="text-sm text-slate-600">Head of Department</div>
+                        </div>
+                        <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                            <div class="font-semibold text-slate-800 mb-1">Dr. Sharmasth Vali</div>
+                            <div class="text-sm text-slate-600">Project Coordinator</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Info -->
+                <div class="feature-card p-8 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50">
+                    <h2 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-info-circle text-indigo-500"></i>Project Details
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700">Program</span>
+                            <span class="text-slate-600">CSE7101 – Capstone</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700">Problem No</span>
+                            <span class="text-slate-600 font-mono">PSCS_290</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700">Category</span>
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">Software</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700">Organization</span>
+                            <span class="text-slate-600">Presidency University</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
+                            <span class="font-medium text-slate-700">Duration</span>
+                            <span class="text-slate-600">14 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem Statement & Background -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 600ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Problem Statement & Background</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Understanding the critical challenges in cloud security and DDoS protection</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="space-y-8">
+                    <div class="feature-card p-8 rounded-2xl">
+                        <h3 class="text-2xl font-bold text-red-600 mb-4 flex items-center gap-3">
+                            <i class="fas fa-exclamation-triangle"></i>The Growing Threat
+                        </h3>
+                        <div class="space-y-4 text-lg text-slate-600 leading-relaxed">
+                            <p>As organizations increasingly migrate their applications and services to the cloud, they face a <strong class="text-red-600">heightened risk of Distributed Denial-of-Service (DDoS) attacks</strong>.</p>
+                            <p>These attacks overwhelm cloud-hosted services, making them unavailable to legitimate users and causing <strong class="text-red-600">significant business losses</strong>.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-card p-8 rounded-2xl">
+                        <h3 class="text-2xl font-bold text-orange-600 mb-4 flex items-center gap-3">
+                            <i class="fas fa-puzzle-piece"></i>The Core Challenge
+                        </h3>
+                        <div class="space-y-4 text-lg text-slate-600 leading-relaxed">
+                            <p>The key challenge lies in <strong class="text-orange-600">differentiating malicious DDoS attacks from genuine traffic surges</strong> (e.g., flash sales or sudden user activity).</p>
+                            <p>Both scenarios create similar traffic patterns, making detection complex and requiring sophisticated analysis.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <div class="feature-card p-8 rounded-2xl">
+                        <h3 class="text-2xl font-bold text-indigo-600 mb-6 flex items-center gap-3">
+                            <i class="fas fa-target"></i>Project Goals
+                        </h3>
+                        <div class="bg-indigo-50 p-6 rounded-xl mb-6">
+                            <p class="text-lg text-slate-700 leading-relaxed">
+                                To develop a <strong class="text-indigo-600">sophisticated, real-time analytics and defense tool</strong> that provides comprehensive DDoS protection for cloud environments.
+                            </p>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-search text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-slate-800">Threat Detection</strong>
+                                    <p class="text-slate-600">Use AI/ML models to identify DDoS patterns</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-chart-line text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-slate-800">Visualization</strong>
+                                    <p class="text-slate-600">Build real-time monitoring dashboards</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-shield-alt text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-slate-800">Automated Mitigation</strong>
+                                    <p class="text-slate-600">Integrate with AWS WAF for instant blocking</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-link text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-slate-800">Audit Logging</strong>
+                                    <p class="text-slate-600">Maintain tamper-proof logs using Blockchain</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-expand-arrows-alt text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-slate-800">Scalability</strong>
+                                    <p class="text-slate-600">Design resilient microservices architecture</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Challenges & Solutions -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 800ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Challenges & Innovative Solutions</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">How we tackle the most complex problems in DDoS protection</p>
+            </div>
+
+            <div class="space-y-8">
+                <div class="challenge-solution p-8 rounded-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-3">
+                                <i class="fas fa-exclamation-circle"></i>Challenge: High-Volume Traffic Processing
+                            </h3>
+                            <p class="text-lg text-slate-600 mb-4">Processing huge volumes of traffic in real-time without performance degradation or system overload.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-green-700 mb-4 flex items-center gap-3">
+                                <i class="fas fa-lightbulb"></i>Solution: Scalable Data Pipeline
+                            </h3>
+                            <p class="text-lg text-slate-600">Scalable data pipeline with hybrid ML models for efficient real-time processing and analysis.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="challenge-solution p-8 rounded-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-3">
+                                <i class="fas fa-exclamation-circle"></i>Challenge: Slow Manual Intervention
+                            </h3>
+                            <p class="text-lg text-slate-600 mb-4">Manual response to attacks is too slow, allowing significant damage before mitigation.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-green-700 mb-4 flex items-center gap-3">
+                                <i class="fas fa-lightbulb"></i>Solution: End-to-End Automation
+                            </h3>
+                            <p class="text-lg text-slate-600">Complete automation with instant IP blocking, minimizing response time to milliseconds.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="challenge-solution p-8 rounded-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-3">
+                                <i class="fas fa-exclamation-circle"></i>Challenge: Log Integrity & Tampering
+                            </h3>
+                            <p class="text-lg text-slate-600 mb-4">Ensuring log integrity and preventing tampering for forensic analysis and compliance.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-green-700 mb-4 flex items-center gap-3">
+                                <i class="fas fa-lightbulb"></i>Solution: Blockchain Audit Trail
+                            </h3>
+                            <p class="text-lg text-slate-600">Blockchain-based immutable audit trail ensuring tamper-proof security event logging.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Innovations -->
+        <section class="animated-entry" style="animation-delay: 1000ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Novel Innovations & Contributions</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Cutting-edge features that set our solution apart</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="innovation-highlight section-card p-8 text-center rounded-2xl">
+                    <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 float-animation">
+                        <i class="fas fa-brain text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">Hybrid ML Model</h3>
+                    <p class="text-slate-600 mb-4">Combines <strong class="text-indigo-600">Isolation Forest</strong> (fast anomaly detection) with <strong class="text-purple-600">LSTM</strong> (deep pattern recognition) for superior detection accuracy.</p>
+                    <div class="flex justify-center gap-2 mt-4">
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">Fast Detection</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Deep Learning</span>
+                    </div>
+                </div>
+
+                <div class="innovation-highlight section-card p-8 text-center rounded-2xl">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-6 float-animation" style="animation-delay: 0.5s;">
+                        <i class="fas fa-robot text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">End-to-End Automation</h3>
+                    <p class="text-slate-600 mb-4">A <strong class="text-blue-600">closed-loop system</strong> — from detection to automated response — minimizing downtime and human intervention.</p>
+                    <div class="flex justify-center gap-2 mt-4">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Zero Touch</span>
+                        <span class="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm">Real-time</span>
+                    </div>
+                </div>
+
+                <div class="innovation-highlight section-card p-8 text-center rounded-2xl">
+                    <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 float-animation" style="animation-delay: 1s;">
+                        <i class="fas fa-link text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">Blockchain Audit Trail</h3>
+                    <p class="text-slate-600 mb-4">Ensures <strong class="text-green-600">immutable, tamper-proof logs</strong> for all security events, providing forensic integrity and compliance.</p>
+                    <div class="flex justify-center gap-2 mt-4">
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Immutable</span>
+                        <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm">Secure</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Architecture -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 1200ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">System Architecture & Data Flow</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">A comprehensive view of our intelligent DDoS protection pipeline</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
+                <!-- Step 1: Data Ingestion -->
+                <div class="feature-card p-8 rounded-2xl text-center relative">
+                    <div class="absolute top-4 right-4 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 pulse-animation">
+                        <i class="fas fa-cloud-download-alt text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Data Ingestion</h3>
+                    <p class="text-slate-600 mb-4">Live network traffic enters through high-throughput message queues with real-time processing capabilities.</p>
+                    <div class="space-y-2">
+                        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Apache Kafka</span>
+                        <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">RabbitMQ</span>
+                    </div>
+                </div>
+
+                <!-- Step 2: ML Analysis -->
+                <div class="feature-card p-8 rounded-2xl text-center relative">
+                    <div class="absolute top-4 right-4 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 pulse-animation" style="animation-delay: 0.5s;">
+                        <i class="fas fa-brain text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">ML Analysis</h3>
+                    <p class="text-slate-600 mb-4">Hybrid ML models analyze traffic patterns using Isolation Forest and LSTM for accurate threat detection.</p>
+                    <div class="space-y-2">
+                        <span class="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">FastAPI</span>
+                        <span class="inline-block px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">TensorFlow</span>
+                    </div>
+                </div>
+
+                <!-- Step 3: Decision Engine -->
+                <div class="feature-card p-8 rounded-2xl text-center relative">
+                    <div class="absolute top-4 right-4 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
+                    <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 pulse-animation" style="animation-delay: 1s;">
+                        <i class="fas fa-cogs text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Decision Engine</h3>
+                    <p class="text-slate-600 mb-4">Intelligent decision-making system determines threat level and appropriate response actions.</p>
+                    <div class="space-y-2">
+                        <span class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Java Spring</span>
+                        <span class="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">Rule Engine</span>
+                    </div>
+                </div>
+
+                <!-- Step 4: Automated Response -->
+                <div class="feature-card p-8 rounded-2xl text-center relative">
+                    <div class="absolute top-4 right-4 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">4</div>
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 pulse-animation" style="animation-delay: 1.5s;">
+                        <i class="fas fa-shield-alt text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Automated Response</h3>
+                    <p class="text-slate-600 mb-4">Instant IP blocking via AWS WAF and immutable logging to blockchain for audit trails.</p>
+                    <div class="space-y-2">
+                        <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">AWS WAF</span>
+                        <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm">Blockchain</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architecture Diagram -->
+            <div class="bg-gradient-to-br from-slate-50 to-indigo-50 p-8 rounded-2xl">
+                <h3 class="text-2xl font-bold text-center text-slate-800 mb-8">Complete System Architecture</h3>
+                <div class="flex flex-col lg:flex-row items-center justify-between space-y-6 lg:space-y-0 lg:space-x-6">
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-globe text-3xl text-white"></i>
+                        </div>
+                        <span class="font-semibold text-slate-800">Internet Traffic</span>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl text-slate-400 transform lg:rotate-0 rotate-90"></i>
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 bg-indigo-500 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-stream text-3xl text-white"></i>
+                        </div>
+                        <span class="font-semibold text-slate-800">Message Queue</span>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl text-slate-400 transform lg:rotate-0 rotate-90"></i>
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 bg-purple-500 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-brain text-3xl text-white"></i>
+                        </div>
+                        <span class="font-semibold text-slate-800">ML Engine</span>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl text-slate-400 transform lg:rotate-0 rotate-90"></i>
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-shield-alt text-3xl text-white"></i>
+                        </div>
+                        <span class="font-semibold text-slate-800">Protection Layer</span>
+                    </div>
+                </div>
             </div>
         </section>
         
-        <!-- Architectural Flow -->
-        <section class="section-card p-8 fade-in" style="animation-delay: 300ms;">
-            <h2 class="text-3xl font-bold text-slate-800 mb-8 text-center">System Architectural Flow</h2>
-            <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0 md:space-x-6">
-                <div class="text-center">
-                    <i class="fas fa-cloud text-5xl text-blue-500"></i>
-                    <p class="mt-2 font-semibold">Incoming Traffic</p>
+        <!-- Technology Stack -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 1400ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Comprehensive Technology Stack</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Modern, scalable technologies powering our DDoS protection system</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <!-- Backend Technologies -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-server text-indigo-500"></i>Backend & Core Services
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 bg-red-50 rounded-xl">
+                            <i class="fab fa-java text-3xl text-red-500 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">Java 21 (Spring Boot)</div>
+                                <div class="text-sm text-slate-600">Core backend services & API gateway</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+                            <i class="fab fa-python text-3xl text-blue-500 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">Python 3.11+ (FastAPI)</div>
+                                <div class="text-sm text-slate-600">ML service & blockchain logging</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-orange-50 rounded-xl">
+                            <i class="fas fa-stream text-3xl text-orange-500 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">Apache Kafka / RabbitMQ</div>
+                                <div class="text-sm text-slate-600">High-throughput message processing</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <i class="fas fa-arrow-right text-4xl flow-arrow hidden md:block"></i>
-                <i class="fas fa-arrow-down text-4xl flow-arrow md:hidden"></i>
-                <div class="text-center">
-                    <i class="fas fa-server text-5xl text-slate-600"></i>
-                    <p class="mt-2 font-semibold">DefenDDoS System</p>
+
+                <!-- Data & ML Technologies -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-purple-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-database text-purple-500"></i>Data & Machine Learning
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
+                            <i class="fas fa-database text-3xl text-purple-500 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">PostgreSQL & InfluxDB</div>
+                                <div class="text-sm text-slate-600">Relational & time-series data storage</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl">
+                            <i class="fas fa-search text-3xl text-yellow-600 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">Elasticsearch</div>
+                                <div class="text-sm text-slate-600">Log analysis & search capabilities</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
+                            <i class="fas fa-brain text-3xl text-green-500 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">Scikit-learn & TensorFlow</div>
+                                <div class="text-sm text-slate-600">ML models & deep learning</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <i class="fas fa-arrow-right text-4xl flow-arrow hidden md:block"></i>
-                <i class="fas fa-arrow-down text-4xl flow-arrow md:hidden"></i>
-                <div class="text-center">
-                    <i class="fas fa-brain text-5xl text-indigo-500"></i>
-                    <p class="mt-2 font-semibold">ML Analysis & Detection</p>
+
+                <!-- Frontend & Cloud -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-blue-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-cloud text-blue-500"></i>Frontend & Cloud Services
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 bg-sky-50 rounded-xl">
+                            <i class="fab fa-react text-3xl text-sky-400 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">React.js</div>
+                                <div class="text-sm text-slate-600">Real-time monitoring dashboard</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-xl">
+                            <i class="fab fa-aws text-3xl text-yellow-500 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">AWS SDK for Java</div>
+                                <div class="text-sm text-slate-600">AWS WAF integration & cloud services</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+                            <i class="fab fa-docker text-3xl text-blue-600 tech-icon"></i>
+                            <div>
+                                <div class="font-semibold text-slate-800">Docker & Docker Compose</div>
+                                <div class="text-sm text-slate-600">Containerization & orchestration</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <i class="fas fa-arrow-right text-4xl flow-arrow hidden md:block"></i>
-                <i class="fas fa-arrow-down text-4xl flow-arrow md:hidden"></i>
-                <div class="text-center">
-                    <i class="fas fa-shield-halved text-5xl text-green-500"></i>
-                    <p class="mt-2 font-semibold">Automated Mitigation</p>
+            </div>
+
+            <!-- Monitoring & DevOps -->
+            <div class="bg-gradient-to-br from-slate-50 to-indigo-50 p-8 rounded-2xl">
+                <h3 class="text-2xl font-bold text-center text-slate-800 mb-8">Monitoring & DevOps Tools</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="flex flex-col items-center gap-3 p-4 bg-white rounded-xl shadow-sm">
+                        <i class="fas fa-chart-line text-3xl text-indigo-500 tech-icon"></i>
+                        <span class="font-semibold text-slate-800">Prometheus</span>
+                        <span class="text-sm text-slate-600 text-center">Metrics collection</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 p-4 bg-white rounded-xl shadow-sm">
+                        <i class="fas fa-tachometer-alt text-3xl text-orange-500 tech-icon"></i>
+                        <span class="font-semibold text-slate-800">Grafana</span>
+                        <span class="text-sm text-slate-600 text-center">Visualization</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 p-4 bg-white rounded-xl shadow-sm">
+                        <i class="fas fa-layer-group text-3xl text-purple-500 tech-icon"></i>
+                        <span class="font-semibold text-slate-800">ELK Stack</span>
+                        <span class="text-sm text-slate-600 text-center">Log management</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 p-4 bg-white rounded-xl shadow-sm">
+                        <i class="fab fa-git-alt text-3xl text-slate-800 tech-icon"></i>
+                        <span class="font-semibold text-slate-800">Git & GitHub</span>
+                        <span class="text-sm text-slate-600 text-center">Version control</span>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Objectives & Contributions Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <section class="section-card p-8 fade-in" style="animation-delay: 400ms;">
-                <h2 class="text-3xl font-bold text-slate-800 mb-6">Core Objectives</h2>
-                <ul class="space-y-4 text-lg text-slate-600">
-                    <li class="flex items-start"><i class="fa-solid fa-check-circle text-green-500 mr-3 mt-1"></i>Detect threats using AI and Machine Learning.</li>
-                    <li class="flex items-start"><i class="fa-solid fa-check-circle text-green-500 mr-3 mt-1"></i>Visualize network status on a real-time dashboard.</li>
-                    <li class="flex items-start"><i class="fa-solid fa-check-circle text-green-500 mr-3 mt-1"></i>Automate threat mitigation with AWS WAF integration.</li>
-                    <li class="flex items-start"><i class="fa-solid fa-check-circle text-green-500 mr-3 mt-1"></i>Create a tamper-proof audit log using Blockchain.</li>
-                    <li class="flex items-start"><i class="fa-solid fa-check-circle text-green-500 mr-3 mt-1"></i>Build a scalable and resilient microservices architecture.</li>
-                </ul>
-            </section>
-            <section class="section-card p-8 fade-in" style="animation-delay: 400ms;">
-                <h2 class="text-3xl font-bold text-slate-800 mb-6">Innovation & Novel Contributions</h2>
-                <ul class="space-y-4 text-lg text-slate-600">
-                    <li class="flex items-start"><i class="fa-solid fa-star text-yellow-500 mr-3 mt-1"></i><strong>Hybrid ML Model:</strong> Combines Isolation Forest for speed with LSTM for deep analysis, resulting in superior detection.</li>
-                    <li class="flex items-start"><i class="fa-solid fa-star text-yellow-500 mr-3 mt-1"></i><strong>Blockchain Audit Trail:</strong> Creates a tamper-proof, immutable log of all security events, guaranteeing data integrity.</li>
-                    <li class="flex items-start"><i class="fa-solid fa-star text-yellow-500 mr-3 mt-1"></i><strong>End-to-End Automation:</strong> Implements a complete, closed-loop from threat detection to immediate, programmatic mitigation in the cloud.</li>
-                </ul>
-            </section>
-        </div>
+        <!-- Software & Hardware Requirements -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 1600ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Software & Hardware Requirements</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Development environment and system specifications</p>
+            </div>
 
-        <!-- Technology Stack -->
-        <section class="section-card p-8 fade-in" style="animation-delay: 500ms;">
-            <h2 class="text-3xl font-bold text-slate-800 mb-8 text-center">Technology Stack</h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 text-center">
-                <div class="flex flex-col items-center"><i class="fab fa-java tech-icon text-red-500"></i><p>Java (Spring Boot)</p></div>
-                <div class="flex flex-col items-center"><i class="fab fa-python tech-icon text-blue-500"></i><p>Python (FastAPI)</p></div>
-                <div class="flex flex-col items-center"><i class="fab fa-react tech-icon text-sky-400"></i><p>React.js</p></div>
-                <div class="flex flex-col items-center"><i class="fas fa-project-diagram tech-icon text-orange-500"></i><p>Kafka / RabbitMQ</p></div>
-                <div class="flex flex-col items-center"><i class="fas fa-database tech-icon text-purple-500"></i><p>PostgreSQL, InfluxDB</p></div>
-                <div class="flex flex-col items-center"><i class="fab fa-aws tech-icon text-yellow-500"></i><p>AWS SDK for Java</p></div>
-                <div class="flex flex-col items-center"><i class="fab fa-docker tech-icon text-blue-600"></i><p>Docker</p></div>
-                <div class="flex flex-col items-center"><i class="fas fa-link tech-icon text-green-600"></i><p>Blockchain (Python)</p></div>
-                <div class="flex flex-col items-center"><i class="fas fa-chart-line tech-icon text-indigo-500"></i><p>Prometheus, Grafana</p></div>
-                <div class="flex flex-col items-center"><i class="fab fa-git-alt tech-icon text-slate-700"></i><p>Git</p></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- Software Requirements -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-laptop-code text-indigo-500"></i>Software Requirements
+                    </h3>
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-slate-800 mb-3">Development Environment</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-indigo-50 rounded-lg">
+                                    <div class="font-medium text-slate-800">IntelliJ IDEA</div>
+                                    <div class="text-sm text-slate-600">Java Development</div>
+                                </div>
+                                <div class="p-3 bg-blue-50 rounded-lg">
+                                    <div class="font-medium text-slate-800">VS Code</div>
+                                    <div class="text-sm text-slate-600">Python/React Development</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-slate-800 mb-3">Programming Languages</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                                    <span class="font-medium text-slate-800">Java</span>
+                                    <span class="text-sm text-slate-600">Version 21+</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                    <span class="font-medium text-slate-800">Python</span>
+                                    <span class="text-sm text-slate-600">Version 3.11+</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                                    <span class="font-medium text-slate-800">JavaScript</span>
+                                    <span class="text-sm text-slate-600">ES6+ (React.js)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-slate-800 mb-3">Development Tools</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-blue-50 rounded-lg text-center">
+                                    <i class="fab fa-docker text-2xl text-blue-600 mb-2"></i>
+                                    <div class="font-medium text-slate-800">Docker Desktop</div>
+                                </div>
+                                <div class="p-3 bg-orange-50 rounded-lg text-center">
+                                    <i class="fas fa-vial text-2xl text-orange-600 mb-2"></i>
+                                    <div class="font-medium text-slate-800">Postman/Insomnia</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardware & System Requirements -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-purple-700 mb-6 flex items-center gap-3">
+                        <i class="fas fa-server text-purple-500"></i>System Specifications
+                    </h3>
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-slate-800 mb-3">Operating Systems</h4>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="p-3 bg-blue-50 rounded-lg text-center">
+                                    <i class="fab fa-windows text-2xl text-blue-600 mb-2"></i>
+                                    <div class="font-medium text-slate-800">Windows</div>
+                                </div>
+                                <div class="p-3 bg-gray-50 rounded-lg text-center">
+                                    <i class="fab fa-apple text-2xl text-gray-600 mb-2"></i>
+                                    <div class="font-medium text-slate-800">macOS</div>
+                                </div>
+                                <div class="p-3 bg-orange-50 rounded-lg text-center">
+                                    <i class="fab fa-linux text-2xl text-orange-600 mb-2"></i>
+                                    <div class="font-medium text-slate-800">Linux</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-slate-800 mb-3">Minimum Hardware</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                                    <span class="font-medium text-slate-800">RAM</span>
+                                    <span class="text-sm text-slate-600">16 GB (32 GB recommended)</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
+                                    <span class="font-medium text-slate-800">Storage</span>
+                                    <span class="text-sm text-slate-600">500 GB SSD</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                    <span class="font-medium text-slate-800">CPU</span>
+                                    <span class="text-sm text-slate-600">8+ cores (Intel i7/AMD Ryzen 7)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-slate-800 mb-3">Cloud Requirements</h4>
+                            <div class="space-y-2">
+                                <div class="p-3 bg-yellow-50 rounded-lg">
+                                    <div class="font-medium text-slate-800">AWS Account</div>
+                                    <div class="text-sm text-slate-600">For WAF integration and cloud services</div>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded-lg">
+                                    <div class="font-medium text-slate-800">Internet Connection</div>
+                                    <div class="text-sm text-slate-600">High-speed for real-time data processing</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- Project Timeline -->
-        <section class="section-card p-8 fade-in" style="animation-delay: 600ms;">
-            <h2 class="text-3xl font-bold text-slate-800 mb-8">Project Timeline (Gantt Chart)</h2>
-            <div class="space-y-4">
-                <div class="grid grid-cols-4 gap-4 items-center">
-                    <p class="font-semibold text-slate-700 col-span-1">Phase 1: Foundation & Backend</p>
-                    <div class="col-span-3 bg-slate-200 rounded-full h-6 relative">
-                        <div class="bg-green-500 h-6 rounded-full" style="width: 14.28%" title="2 Weeks: Aug 19 - Sep 01"></div>
+        <section class="section-card p-10 animated-entry" style="animation-delay: 1800ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Project Timeline (14 Weeks)</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Structured development phases from concept to deployment</p>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Timeline Header -->
+                <div class="grid grid-cols-7 text-center font-semibold text-slate-600 text-sm bg-slate-50 p-4 rounded-xl">
+                    <span>Aug W3-4</span><span>Sep W1-2</span><span>Sep W3-4</span><span>Oct W1-2</span><span>Oct W3-4</span><span>Nov W1-2</span><span>Nov W3-4</span>
+                </div>
+
+                <!-- Phase 1: Foundation -->
+                <div class="tooltip w-full">
+                    <span class="tooltiptext">Phase 1: Foundation & Setup (Aug 19 - Sep 01)<br>• Project setup & architecture design<br>• Technology stack configuration<br>• Initial prototyping</span>
+                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                        <div class="gantt-bar bg-gradient-to-r from-green-500 to-green-600 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="width: 14.3%;">
+                            <i class="fas fa-foundation mr-2"></i>Foundation & Setup
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-4 gap-4 items-center">
-                    <p class="font-semibold text-slate-700 col-span-1">Phase 2: Core Feature Dev</p>
-                    <div class="col-span-3 bg-slate-200 rounded-full h-6 relative">
-                        <div class="bg-blue-500 h-6 rounded-full absolute" style="left: 14.28%; width: 28.57%" title="4 Weeks: Sep 02 - Sep 29"></div>
+
+                <!-- Phase 2: Core Development -->
+                <div class="tooltip w-full">
+                    <span class="tooltiptext">Phase 2: Core Development (Sep 02 - Sep 29)<br>• ML model development<br>• Backend services implementation<br>• Database design & setup</span>
+                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                        <div class="gantt-bar bg-gradient-to-r from-blue-500 to-blue-600 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 14.3%; width: 28.6%;">
+                            <i class="fas fa-code mr-2"></i>Core Development
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-4 gap-4 items-center">
-                    <p class="font-semibold text-slate-700 col-span-1">Phase 3: Integration</p>
-                    <div class="col-span-3 bg-slate-200 rounded-full h-6 relative">
-                        <div class="bg-yellow-500 h-6 rounded-full absolute" style="left: 42.85%; width: 28.57%" title="4 Weeks: Sep 30 - Oct 27"></div>
+
+                <!-- Phase 3: Integration -->
+                <div class="tooltip w-full">
+                    <span class="tooltiptext">Phase 3: Integration & Features (Sep 30 - Oct 27)<br>• System integration<br>• Frontend dashboard development<br>• AWS WAF integration</span>
+                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                        <div class="gantt-bar bg-gradient-to-r from-yellow-500 to-orange-500 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 42.9%; width: 28.6%;">
+                            <i class="fas fa-puzzle-piece mr-2"></i>Integration & Features
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-4 gap-4 items-center">
-                    <p class="font-semibold text-slate-700 col-span-1">Phase 4: Testing & Delivery</p>
-                    <div class="col-span-3 bg-slate-200 rounded-full h-6 relative">
-                        <div class="bg-red-500 h-6 rounded-full absolute" style="left: 71.42%; width: 28.57%" title="4 Weeks: Oct 28 - Nov 24"></div>
+
+                <!-- Phase 4: Testing & Deployment -->
+                <div class="tooltip w-full">
+                    <span class="tooltiptext">Phase 4: Testing & Deployment (Oct 28 - Nov 24)<br>• Comprehensive testing<br>• Performance optimization<br>• Documentation & deployment</span>
+                    <div class="gantt-bar-bg w-full h-12 flex items-center rounded-xl">
+                        <div class="gantt-bar bg-gradient-to-r from-red-500 to-pink-500 h-12 rounded-xl text-white text-sm px-4 flex items-center font-semibold shadow-lg" style="margin-left: 71.5%; width: 28.5%;">
+                            <i class="fas fa-rocket mr-2"></i>Testing & Deployment
+                        </div>
                     </div>
                 </div>
             </div>
-             <div class="flex justify-between text-xs text-slate-500 mt-2 px-1">
-                <span>Aug 19</span>
-                <span>Sep 30</span>
-                <span>Nov 24</span>
+
+            <!-- Timeline Details -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="feature-card p-6 rounded-xl text-center">
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-foundation text-white"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-800 mb-2">Phase 1</h4>
+                    <p class="text-sm text-slate-600">Foundation & Architecture</p>
+                    <div class="text-xs text-green-600 font-semibold mt-2">2 Weeks</div>
+                </div>
+                <div class="feature-card p-6 rounded-xl text-center">
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-code text-white"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-800 mb-2">Phase 2</h4>
+                    <p class="text-sm text-slate-600">Core Development</p>
+                    <div class="text-xs text-blue-600 font-semibold mt-2">4 Weeks</div>
+                </div>
+                <div class="feature-card p-6 rounded-xl text-center">
+                    <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-puzzle-piece text-white"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-800 mb-2">Phase 3</h4>
+                    <p class="text-sm text-slate-600">Integration & Features</p>
+                    <div class="text-xs text-yellow-600 font-semibold mt-2">4 Weeks</div>
+                </div>
+                <div class="feature-card p-6 rounded-xl text-center">
+                    <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-rocket text-white"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-800 mb-2">Phase 4</h4>
+                    <p class="text-sm text-slate-600">Testing & Deployment</p>
+                    <div class="text-xs text-red-600 font-semibold mt-2">4 Weeks</div>
+                </div>
             </div>
         </section>
-        
-        <!-- Final Section: GitHub & References -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <section class="section-card p-8 fade-in" style="animation-delay: 700ms;">
-                <h2 class="text-3xl font-bold text-slate-800 mb-4">GitHub Repository</h2>
-                <p class="text-lg text-slate-600 mb-6">Explore the full source code, documentation, and implementation details of the DefenDDoS-Cloud project.</p>
-                <a href="https://github.com/ByteAcumen/DefenDDoS-Cloud" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-slate-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-900 transition-colors">
-                    <i class="fab fa-github"></i>
-                    View on GitHub
-                </a>
-            </section>
 
-            <section class="section-card p-8 fade-in" style="animation-delay: 700ms;">
-                <h2 class="text-3xl font-bold text-slate-800 mb-4">Key References</h2>
-                <ul class="list-disc list-inside text-slate-600 space-y-3">
-                    <li>S. M. H. Dadgar, M. T. T. Araghi, and M. A. M. Balafar, "A DDoS Detection Method Based on Feature Engineering and Machine Learning in Software-Defined Networks," *MDPI Sensors*, vol. 23, no. 13, p. 6176, Jul. 2023.</li>
-                    <li>Z. Zhong, "Anomaly Detection in Time Series Data using LSTM Autoencoders," *Medium*, Aug. 12, 2025.</li>
-                    <li>A. Sharafaldin, A. H. Lashkari, and A. A. Ghorbani, "A DDoS evaluation dataset (CIC-DDoS2019)," *University of New Brunswick*, 2019.</li>
-                </ul>
-            </section>
-        </div>
-        
+        <!-- GitHub Repository & Demo -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 2000ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Project Repository & Resources</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Access our complete codebase, documentation, and live demonstrations</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- GitHub Repository -->
+                <div class="feature-card p-8 rounded-2xl text-center">
+                    <div class="w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 float-animation">
+                        <i class="fab fa-github text-4xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">GitHub Repository</h3>
+                    <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+                        Complete source code, comprehensive documentation, setup instructions, and implementation details are publicly available.
+                    </p>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-center justify-center gap-4 text-sm text-slate-600">
+                            <span class="flex items-center gap-2"><i class="fas fa-code text-indigo-500"></i>Source Code</span>
+                            <span class="flex items-center gap-2"><i class="fas fa-book text-purple-500"></i>Documentation</span>
+                            <span class="flex items-center gap-2"><i class="fas fa-cog text-blue-500"></i>Setup Guide</span>
+                        </div>
+                    </div>
+                    <a href="https://github.com/ByteAcumen/DefenDDoS-Cloud" target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center gap-3 bg-gradient-to-r from-slate-800 to-slate-900 text-white font-bold py-4 px-8 rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        <i class="fab fa-github text-xl"></i>
+                        <span>Explore Repository</span>
+                        <i class="fas fa-external-link-alt text-sm"></i>
+                    </a>
+                </div>
+
+                <!-- Project Statistics -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">Project Metrics</h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="text-center p-4 bg-indigo-50 rounded-xl">
+                            <div class="text-3xl font-bold text-indigo-600 mb-2">5+</div>
+                            <div class="text-sm text-slate-600">Microservices</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-xl">
+                            <div class="text-3xl font-bold text-purple-600 mb-2">2</div>
+                            <div class="text-sm text-slate-600">ML Models</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-xl">
+                            <div class="text-3xl font-bold text-blue-600 mb-2">99.9%</div>
+                            <div class="text-sm text-slate-600">Uptime Target</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-xl">
+                            <div class="text-3xl font-bold text-green-600 mb-2">&lt;100ms</div>
+                            <div class="text-sm text-slate-600">Response Time</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-6 bg-gradient-to-br from-slate-50 to-indigo-50 rounded-xl">
+                        <h4 class="font-bold text-slate-800 mb-4 text-center">Key Features</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <span class="text-slate-700">Real-time DDoS detection</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <span class="text-slate-700">Automated AWS WAF integration</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <span class="text-slate-700">Blockchain audit logging</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <span class="text-slate-700">Interactive monitoring dashboard</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Academic References -->
+        <section class="section-card p-10 animated-entry" style="animation-delay: 2200ms;">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold gradient-text mb-4">Academic References & Research</h2>
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto">Scientific foundation and research backing our implementation</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="feature-card p-8 rounded-2xl">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">1</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-2">DDoS Detection in Software-Defined Networks</h4>
+                            <p class="text-slate-600 mb-3">
+                                S. M. H. Dadgar, M. T. T. Araghi, and M. A. M. Balafar, "A DDoS Detection Method Based on Feature Engineering and Machine Learning in Software-Defined Networks,"
+                                <em class="text-indigo-600">MDPI Sensors</em>, vol. 23, no. 13, p. 6176, Jul. 2023.
+                            </p>
+                            <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">Machine Learning</span>
+                            <span class="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Feature Engineering</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card p-8 rounded-2xl">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">2</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-2">LSTM Autoencoders for Anomaly Detection</h4>
+                            <p class="text-slate-600 mb-3">
+                                Z. Zhong, "Anomaly Detection in Time Series Data using LSTM Autoencoders,"
+                                <em class="text-purple-600">Medium</em>, Aug. 12, 2025.
+                            </p>
+                            <span class="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Deep Learning</span>
+                            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Time Series</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card p-8 rounded-2xl">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">3</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-2">CIC-DDoS2019 Evaluation Dataset</h4>
+                            <p class="text-slate-600 mb-3">
+                                A. Sharafaldin, A. H. Lashkari, and A. A. Ghorbani, "A DDoS evaluation dataset (CIC-DDoS2019),"
+                                <em class="text-blue-600">University of New Brunswick</em>, 2019.
+                            </p>
+                            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Dataset</span>
+                            <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Evaluation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card p-8 rounded-2xl">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">4</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-2">AWS WAF Integration Reference</h4>
+                            <p class="text-slate-600 mb-3">
+                                Amazon Web Services, "update-ip-set — AWS CLI 2.27.40 Command Reference," Aug. 12, 2025.
+                            </p>
+                            <span class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">AWS</span>
+                            <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Cloud Integration</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card p-8 rounded-2xl">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">5</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-2">FastAPI ML Model Deployment</h4>
+                            <p class="text-slate-600 mb-3">
+                                K. Njagi, "Deploying Machine Learning models using FastAPI,"
+                                <em class="text-orange-600">Medium</em>, Aug. 12, 2025.
+                            </p>
+                            <span class="inline-block px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">FastAPI</span>
+                            <span class="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Deployment</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Footer -->
-        <footer class="text-center mt-12 text-slate-500">
-            <p>A Capstone Project by H. H. Hemanth Kumar, Akarsh Gururaju, & Sarfarz B Tonshiyal | Presidency University</p>
+        <footer class="text-center mt-16 py-12 border-t border-slate-200">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-center items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold gradient-text">DefenDDoS-Cloud</h3>
+                </div>
+                <p class="text-lg text-slate-600 mb-4">
+                    An innovative capstone project by Computer Science Engineering students at Presidency University
+                </p>
+                <div class="flex justify-center gap-8 mb-6 text-sm text-slate-500">
+                    <span>Problem Statement: PSCS_290</span>
+                    <span>•</span>
+                    <span>Duration: 14 Weeks</span>
+                    <span>•</span>
+                    <span>Category: Software</span>
+                </div>
+                <div class="text-slate-500">
+                    <p>&copy; 2025 DefenDDoS-Cloud Team | Presidency University</p>
+                    <p class="text-sm mt-2">Supervised by Dr. Shanthi S | School of Computer Science and Engineering</p>
+                </div>
+            </div>
         </footer>
 
-    </main>
+        </main>
+    </div>
 </body>
-</html>
+</html>```
