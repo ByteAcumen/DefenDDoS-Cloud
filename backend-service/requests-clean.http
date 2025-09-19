@@ -1,0 +1,314 @@
+# ========================================
+# DefenDDoS Backend Service - Complete API Test Suite
+# ========================================
+# Clean, comprehensive testing for all DefenDDoS endpoints
+# Base64 auth: admin:SecurePassword123 = YWRtaW46U2VjdXJlUGFzc3dvcmQxMjM=
+
+@baseUrl = http://localhost:8081
+@auth = Basic YWRtaW46U2VjdXJlUGFzc3dvcmQxMjM=
+@contentType = application/json
+
+# ========================================
+# 🏥 HEALTH & MONITORING
+# ========================================
+
+### System Health Check
+GET {{baseUrl}}/actuator/health
+Authorization: {{auth}}
+
+### Application Info & Build Details
+GET {{baseUrl}}/actuator/info
+Authorization: {{auth}}
+
+### Prometheus Metrics (for monitoring dashboards)
+GET {{baseUrl}}/actuator/prometheus
+Authorization: {{auth}}
+
+### General Metrics Overview
+GET {{baseUrl}}/actuator/metrics
+Authorization: {{auth}}
+
+# ========================================
+# 📊 TRAFFIC DATA MANAGEMENT  
+# ========================================
+
+### Ingest Normal Traffic Pattern
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "192.168.1.100",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 150,
+  "byteCount": 65000,
+  "timestamp": "2025-09-10T10:30:00Z"
+}
+
+### Ingest Medium Traffic (Should trigger LOW alert)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "203.0.113.10",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 1500,
+  "byteCount": 2000000,
+  "timestamp": "2025-09-10T11:00:00Z"
+}
+
+### Ingest High Traffic (Should trigger MEDIUM alert)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "203.0.113.20",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 8000,
+  "byteCount": 15000000,
+  "timestamp": "2025-09-10T11:01:00Z"
+}
+
+### Ingest Critical Traffic (Should trigger HIGH alert + auto-block)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "198.51.100.42",
+  "destinationIp": "10.0.0.50", 
+  "packetCount": 20000,
+  "byteCount": 40000000,
+  "timestamp": "2025-09-10T11:02:00Z"
+}
+
+### Ingest CRITICAL Traffic (Should trigger CRITICAL alert + immediate block)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "198.51.100.99",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 60000,
+  "byteCount": 120000000,
+  "timestamp": "2025-09-10T11:03:00Z"
+}
+
+### Query Traffic by Specific IP
+GET {{baseUrl}}/api/v1/traffic/query?sourceIp=192.168.1.100&minutes=60
+Authorization: {{auth}}
+
+### Query All Recent Traffic
+GET {{baseUrl}}/api/v1/traffic/query?minutes=30
+Authorization: {{auth}}
+
+### Get Traffic Summary for Dashboard
+GET {{baseUrl}}/api/v1/traffic/summary?hours=1
+Authorization: {{auth}}
+
+### Get Visualization Data for Charts
+GET {{baseUrl}}/api/v1/traffic/visualization?timeRange=1h&groupBy=sourceIp
+Authorization: {{auth}}
+
+# ========================================
+# 🛡️ SECURITY & THREAT DETECTION
+# ========================================
+
+### Security Dashboard Overview
+GET {{baseUrl}}/api/v1/security/dashboard
+Authorization: {{auth}}
+
+### Current Security Status
+GET {{baseUrl}}/api/v1/security/status
+Authorization: {{auth}}
+
+### Analyze Normal IP Behavior
+GET {{baseUrl}}/api/v1/security/analyze/192.168.1.100
+Authorization: {{auth}}
+
+### Analyze Suspicious IP
+GET {{baseUrl}}/api/v1/security/analyze/203.0.113.20
+Authorization: {{auth}}
+
+### Analyze High-Threat IP
+GET {{baseUrl}}/api/v1/security/analyze/198.51.100.42
+Authorization: {{auth}}
+
+### Test Alert System
+POST {{baseUrl}}/api/v1/security/test-alert
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "message": "Manual system test - alert verification"
+}
+
+# ========================================
+# 🚫 IP MITIGATION & BLOCKING
+# ========================================
+
+### Get Mitigation Service Status
+GET {{baseUrl}}/api/v1/mitigation/status
+Authorization: {{auth}}
+
+### List All Blocked IPs
+GET {{baseUrl}}/api/v1/mitigation/blocked
+Authorization: {{auth}}
+
+### Check If Specific IP Is Blocked
+GET {{baseUrl}}/api/v1/mitigation/check/198.51.100.42
+Authorization: {{auth}}
+
+### Manually Block Suspicious IP
+POST {{baseUrl}}/api/v1/mitigation/block/203.0.113.88?reason=Manual block - suspicious activity detected
+Authorization: {{auth}}
+
+### Bulk Block Multiple IPs
+POST {{baseUrl}}/api/v1/mitigation/block/bulk
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "ips": ["203.0.113.200", "203.0.113.201", "203.0.113.202"],
+  "reason": "Coordinated attack prevention - bulk block"
+}
+
+### Unblock Previously Blocked IP
+POST {{baseUrl}}/api/v1/mitigation/unblock/203.0.113.88
+Authorization: {{auth}}
+
+### Check Status After Unblock
+GET {{baseUrl}}/api/v1/mitigation/check/203.0.113.88
+Authorization: {{auth}}
+
+# ========================================
+# ⚠️ ATTACK SIMULATION (Use Carefully!)
+# ========================================
+# These requests simulate real attacks and will trigger alerts
+
+### Simulate Distributed Attack - Attacker 1
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "198.51.100.150",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 45000,
+  "byteCount": 90000000,
+  "timestamp": "2025-09-10T11:15:00Z"
+}
+
+### Simulate Distributed Attack - Attacker 2  
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "198.51.100.151",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 48000,
+  "byteCount": 95000000,
+  "timestamp": "2025-09-10T11:15:05Z"
+}
+
+### Simulate Distributed Attack - Attacker 3
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "198.51.100.152",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 52000,
+  "byteCount": 105000000,
+  "timestamp": "2025-09-10T11:15:10Z"
+}
+
+# ========================================
+# 🧪 SYSTEM VALIDATION SEQUENCE
+# ========================================
+# Run these in sequence to validate complete system functionality
+
+### 1. Check System Health
+GET {{baseUrl}}/actuator/health
+Authorization: {{auth}}
+
+### 2. Verify Security Dashboard
+GET {{baseUrl}}/api/v1/security/dashboard  
+Authorization: {{auth}}
+
+### 3. Check Mitigation Status
+GET {{baseUrl}}/api/v1/mitigation/status
+Authorization: {{auth}}
+
+### 4. Send Test Traffic
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "192.168.1.200",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 100,
+  "byteCount": 50000,
+  "timestamp": "2025-09-10T11:30:00Z"
+}
+
+### 5. Wait 30 seconds then check dashboard again
+GET {{baseUrl}}/api/v1/security/dashboard
+Authorization: {{auth}}
+
+### 6. Test Alert System
+POST {{baseUrl}}/api/v1/security/test-alert
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "message": "System validation complete - all systems operational"
+}
+
+# ========================================
+# 📈 PERFORMANCE & RATE LIMITING TESTS
+# ========================================
+
+### Test Rate Limiting (Send multiple requests quickly)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "192.168.1.250",
+  "destinationIp": "10.0.0.50",
+  "packetCount": 50,
+  "byteCount": 25000,
+  "timestamp": "2025-09-10T11:35:00Z"
+}
+
+### Rate Limit Test 2
+POST {{baseUrl}}/api/v1/traffic/ingest
+Authorization: {{auth}}
+Content-Type: {{contentType}}
+
+{
+  "sourceIp": "192.168.1.251",
+  "destinationIp": "10.0.0.50", 
+  "packetCount": 55,
+  "byteCount": 27500,
+  "timestamp": "2025-09-10T11:35:01Z"
+}
+
+# ========================================
+# 🎯 EMERGENCY PROCEDURES (USE WITH CAUTION)
+# ========================================
+
+### Emergency: Clear All Blocked IPs (Uncomment to use)
+# POST {{baseUrl}}/api/v1/mitigation/clear
+# Authorization: {{auth}}
+
+### Emergency: Check System Status After Clear
+# GET {{baseUrl}}/api/v1/mitigation/blocked
+# Authorization: {{auth}}

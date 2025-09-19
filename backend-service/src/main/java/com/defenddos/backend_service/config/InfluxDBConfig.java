@@ -2,24 +2,34 @@ package com.defenddos.backend_service.config;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration // Marks this class as a source of bean definitions
+/**
+ * InfluxDB configuration for time-series data storage.
+ * Creates and configures the InfluxDB client connection.
+ */
+@Configuration
 public class InfluxDBConfig {
 
-    @Value("${influx.url}")
-    private String influxUrl;
+    private final DefenDDoSProperties properties;
 
-    @Value("${influx.token}")
-    private String token;
+    public InfluxDBConfig(DefenDDoSProperties properties) {
+        this.properties = properties;
+    }
 
-    @Value("${influx.org}")
-    private String org;
-
-    @Bean // Creates a Spring-managed InfluxDBClient that we can use anywhere
+    /**
+     * Creates the InfluxDB client bean for dependency injection.
+     * 
+     * @return Configured InfluxDB client
+     */
+    @Bean
     public InfluxDBClient influxDBClient() {
-        return InfluxDBClientFactory.create(influxUrl, token.toCharArray(), org);
+        DefenDDoSProperties.InfluxDb influxConfig = properties.getInfluxDb();
+        return InfluxDBClientFactory.create(
+            influxConfig.getUrl(), 
+            influxConfig.getToken().toCharArray(), 
+            influxConfig.getOrg()
+        );
     }
 }

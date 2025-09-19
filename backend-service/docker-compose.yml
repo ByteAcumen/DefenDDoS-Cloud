@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # InfluxDB Time-Series Database
+  influxdb:
+    image: influxdb:2.7
+    container_name: defenddos-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=SecureInfluxPassword123
+      - DOCKER_INFLUXDB_INIT_ORG=defenddos-org
+      - DOCKER_INFLUXDB_INIT_BUCKET=ddos-bucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=7QotbzsDl1Mg2JVkh3WhBHxw9YHLDRZT4fd7thN9015P1xuhs0BCpvVktQ2YJrU0_7fI3JP4yjIav5mrNYkSpg==
+    networks:
+      - defenddos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # DefenDDoS Backend Service
+  backend-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: defenddos-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8081"
+    environment:
+      - DEFENDDOS_INFLUXDB_URL=http://influxdb:8086
+      - DEFENDDOS_INFLUXDB_TOKEN=7QotbzsDl1Mg2JVkh3WhBHxw9YHLDRZT4fd7thN9015P1xuhs0BCpvVktQ2YJrU0_7fI3JP4yjIav5mrNYkSpg==
+      - DEFENDDOS_INFLUXDB_ORG=defenddos-org
+      - DEFENDDOS_INFLUXDB_BUCKET=ddos-bucket
+      - DEFENDDOS_DETECTION_THRESHOLD=100
+      - DEFENDDOS_DETECTION_WINDOW=60000
+      - DEFENDDOS_RATE_LIMIT_REQUESTS_PER_MINUTE=100
+      - SPRING_PROFILES_ACTIVE=prod
+      - DEFENDDOS_ALERTS_MAIL_ENABLED=false
+      - SPRING_SECURITY_USER_NAME=admin
+      - SPRING_SECURITY_USER_PASSWORD=DefenDDoS123!
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    networks:
+      - defenddos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs:/app/logs
+
+networks:
+  defenddos-network:
+    driver: bridge
+
+volumes:
+  influxdb-data:
+  influxdb-config:
