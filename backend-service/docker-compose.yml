@@ -33,8 +33,12 @@ services:
       dockerfile: Dockerfile
     container_name: defenddos-backend
     restart: unless-stopped
+    privileged: true  # Required for iptables IP blocking
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
     ports:
-      - "8080:8081"
+      - "8082:8081"
     environment:
       - DEFENDDOS_INFLUXDB_URL=http://influxdb:8086
       - DEFENDDOS_INFLUXDB_TOKEN=7QotbzsDl1Mg2JVkh3WhBHxw9YHLDRZT4fd7thN9015P1xuhs0BCpvVktQ2YJrU0_7fI3JP4yjIav5mrNYkSpg==
@@ -47,8 +51,14 @@ services:
       - DEFENDDOS_ALERTS_MAIL_ENABLED=false
       - SPRING_SECURITY_USER_NAME=admin
       - SPRING_SECURITY_USER_PASSWORD=DefenDDoS123!
+      - DEFENDDOS_ML_SERVICE_ENABLED=true
+      - DEFENDDOS_ML_SERVICE_URL=http://ml-service:8000
+      - DEFENDDOS_ML_SERVICE_TIMEOUT_SECONDS=10
+      - DEFENDDOS_ML_SERVICE_RETRY_ATTEMPTS=3
     depends_on:
       influxdb:
+        condition: service_healthy
+      ml-service:
         condition: service_healthy
     networks:
       - defenddos-network
@@ -59,6 +69,26 @@ services:
       retries: 3
     volumes:
       - ./logs:/app/logs
+
+  # ML Detection Service (Python FastAPI)
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: defenddos-ml-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    networks:
+      - defenddos-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - ./ml-service/models:/app/models
 
 networks:
   defenddos-network:

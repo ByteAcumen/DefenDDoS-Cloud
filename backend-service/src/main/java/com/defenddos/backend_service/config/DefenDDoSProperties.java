@@ -15,12 +15,14 @@ public class DefenDDoSProperties {
     private final Detection detection = new Detection();
     private final Mitigation mitigation = new Mitigation();
     private final Alerts alerts = new Alerts();
+    private final MlService mlService = new MlService();
 
     // Getters
     public InfluxDb getInfluxDb() { return influxDb; }
     public Detection getDetection() { return detection; }
     public Mitigation getMitigation() { return mitigation; }
     public Alerts getAlerts() { return alerts; }
+    public MlService getMlService() { return mlService; }
 
     /**
      * InfluxDB connection properties
@@ -115,5 +117,25 @@ public class DefenDDoSProperties {
             public String getSubject() { return subject; }
             public void setSubject(String subject) { this.subject = subject; }
         }
+    }
+
+    /**
+     * ML Service configuration
+     */
+    public static class MlService {
+        private boolean enabled = false;
+        private String url = "http://localhost:8000";
+        private int timeoutSeconds = 10;
+        private int retryAttempts = 3;
+
+        // Getters and setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public String getUrl() { return url; }
+        public void setUrl(String url) { this.url = url; }
+        public int getTimeoutSeconds() { return timeoutSeconds; }
+        public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
+        public int getRetryAttempts() { return retryAttempts; }
+        public void setRetryAttempts(int retryAttempts) { this.retryAttempts = retryAttempts; }
     }
 }

@@ -28,8 +28,8 @@ public class TrafficService {
 
     // Spring automatically provides the InfluxDBClient and property values here
     public TrafficService(InfluxDBClient influxDBClient,
-                          @Value("${influx.bucket}") String bucket,
-                          @Value("${influx.org}") String org) {
+                          @Value("${defenddos.influx-db.bucket}") String bucket,
+                          @Value("${defenddos.influx-db.org}") String org) {
         this.influxDBClient = influxDBClient;
         this.bucket = bucket;
         this.org = org;
