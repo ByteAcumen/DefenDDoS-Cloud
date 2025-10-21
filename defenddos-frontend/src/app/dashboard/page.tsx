@@ -40,41 +40,41 @@ import {
 } from '@/hooks/useBackendApi';
 import { cn } from '@/lib/utils';
 
-// Animation variants with optimized, faster timing
+// Optimized animation variants - Smoother and faster
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.05,
-      duration: 0.3,
-      ease: [0.4, 0, 0.2, 1] as any
+      staggerChildren: 0.03,
+      delayChildren: 0,
+      duration: 0.2,
+      ease: [0.25, 0.1, 0.25, 1] as any
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  hidden: { opacity: 0, y: 8, scale: 0.98 },
   visible: { 
     opacity: 1, 
     y: 0,
     scale: 1,
     transition: { 
-      duration: 0.3,
-      ease: [0.4, 0, 0.2, 1] as any
+      duration: 0.25,
+      ease: [0.25, 0.1, 0.25, 1] as any
     }
   }
 };
 
 const cardHoverVariants = {
-  rest: { scale: 1, boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.1)" },
+  rest: { scale: 1, y: 0 },
   hover: { 
-    scale: 1.015, 
-    boxShadow: "0 12px 20px -5px rgb(0 0 0 / 0.1), 0 6px 8px -4px rgb(0 0 0 / 0.1)",
+    scale: 1.01, 
+    y: -2,
     transition: { 
-      duration: 0.2,
-      ease: [0.4, 0, 0.2, 1] as any
+      duration: 0.15,
+      ease: [0.25, 0.1, 0.25, 1] as any
     }
   }
 };
@@ -266,16 +266,28 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Header Section with Gradient */}
+      {/* Enhanced Header Section with Animated Gradient */}
       <motion.div
-        className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5 rounded-xl md:rounded-2xl p-4 sm:p-6 md:p-8 border border-border/50 shadow-xl"
-        initial={{ opacity: 0, y: -12 }}
+        className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 rounded-2xl p-4 sm:p-6 md:p-8 border border-border/50 shadow-2xl"
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 bg-grid-white/[0.03] bg-[size:30px_30px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+        <motion.div 
+          className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3]
+          }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
         
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
           <div className="space-y-2 sm:space-y-3">
@@ -295,17 +307,27 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* System Health Badge */}
+            {/* System Health Badge with Pulse Animation */}
             <motion.div 
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-card/90 backdrop-blur-md border border-border/50 shadow-lg"
+              whileHover={{ scale: 1.03, y: -1 }}
+              transition={{ duration: 0.15 }}
             >
-              <div className={cn("w-2 h-2 sm:w-3 sm:h-3 rounded-full animate-pulse", {
-                "bg-green-500 shadow-lg shadow-green-500/50": systemHealth.status === 'operational',
-                "bg-yellow-500 shadow-lg shadow-yellow-500/50": systemHealth.status === 'warning',
-                "bg-red-500 shadow-lg shadow-red-500/50": systemHealth.status === 'critical'
-              })} />
+              <motion.div 
+                className={cn("w-2 h-2 sm:w-3 sm:h-3 rounded-full relative", {
+                  "bg-green-500": systemHealth.status === 'operational',
+                  "bg-yellow-500": systemHealth.status === 'warning',
+                  "bg-red-500": systemHealth.status === 'critical'
+                })}
+                animate={{
+                  boxShadow: [
+                    '0 0 0 0 rgba(var(--color), 0.7)',
+                    '0 0 0 6px rgba(var(--color), 0)',
+                    '0 0 0 0 rgba(var(--color), 0)'
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
               <span className="text-xs sm:text-sm font-semibold text-foreground">{systemHealth.message}</span>
             </motion.div>
 
@@ -375,61 +397,69 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Enhanced KPI Grid */}
+      {/* Enhanced KPI Grid with Hover Effects */}
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants}>
-          <MetricCard
-            title="Traffic Volume"
-            value={metrics?.currentPacketsPerSecond || 0}
-            icon={<Network className="w-[18px] h-[18px]" />}
-            change={{
-              value: 12.3,
-              type: 'increase',
-              timeframe: 'last hour'
-            }}
-            color="blue"
-            loading={liveLoading}
-          />
+        <motion.div variants={itemVariants} whileHover="hover" initial="rest">
+          <motion.div variants={cardHoverVariants}>
+            <MetricCard
+              title="Traffic Volume"
+              value={metrics?.currentPacketsPerSecond || 0}
+              icon={<Network className="w-[18px] h-[18px]" />}
+              change={{
+                value: 12.3,
+                type: 'increase',
+                timeframe: 'last hour'
+              }}
+              color="blue"
+              loading={liveLoading}
+            />
+          </motion.div>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <MetricCard
-            title="Active Threats"
-            value={metrics?.activeThreatsCount || 0}
-            icon={<AlertTriangle className="w-[18px] h-[18px]" />}
-            color={(metrics?.activeThreatsCount || 0) > 0 ? 'red' : 'green'}
-            loading={liveLoading}
-          />
+        <motion.div variants={itemVariants} whileHover="hover" initial="rest">
+          <motion.div variants={cardHoverVariants}>
+            <MetricCard
+              title="Active Threats"
+              value={metrics?.activeThreatsCount || 0}
+              icon={<AlertTriangle className="w-[18px] h-[18px]" />}
+              color={(metrics?.activeThreatsCount || 0) > 0 ? 'red' : 'green'}
+              loading={liveLoading}
+            />
+          </motion.div>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <MetricCard
-            title="Blocked IPs"
-            value={metrics?.blockedIPsCount || 0}
-            icon={<Ban className="w-[18px] h-[18px]" />}
-            color="red"
-            loading={liveLoading}
-          />
+        <motion.div variants={itemVariants} whileHover="hover" initial="rest">
+          <motion.div variants={cardHoverVariants}>
+            <MetricCard
+              title="Blocked IPs"
+              value={metrics?.blockedIPsCount || 0}
+              icon={<Ban className="w-[18px] h-[18px]" />}
+              color="red"
+              loading={liveLoading}
+            />
+          </motion.div>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <MetricCard
-            title="System Performance"
-            value="99.9%"
-            icon={<Cpu className="w-[18px] h-[18px]" />}
-            change={{
-              value: 0.1,
-              type: 'increase',
-              timeframe: 'uptime'
-            }}
-            color="green"
-            loading={liveLoading}
-          />
+        <motion.div variants={itemVariants} whileHover="hover" initial="rest">
+          <motion.div variants={cardHoverVariants}>
+            <MetricCard
+              title="System Performance"
+              value="99.9%"
+              icon={<Cpu className="w-[18px] h-[18px]" />}
+              change={{
+                value: 0.1,
+                type: 'increase',
+                timeframe: 'uptime'
+              }}
+              color="green"
+              loading={liveLoading}
+            />
+          </motion.div>
         </motion.div>
       </motion.div>
 
@@ -596,15 +626,15 @@ export default function DashboardPage() {
         </motion.div>
       </motion.div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions with Enhanced Interactions */}
       <motion.div
         className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer group">
+        <motion.div variants={itemVariants} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+          <Card className="hover:shadow-xl hover:border-primary/60 transition-all duration-200 cursor-pointer group bg-gradient-to-br from-primary/5 to-transparent">
             <CardContent className="p-5 text-center">
               <div className="w-10 h-10 mx-auto mb-3 p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors duration-200">
                 <Network className="w-full h-full text-primary" />
@@ -619,8 +649,8 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-lg hover:border-red-500/50 transition-all duration-200 cursor-pointer group">
+        <motion.div variants={itemVariants} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+          <Card className="hover:shadow-xl hover:border-red-500/60 transition-all duration-200 cursor-pointer group bg-gradient-to-br from-red-500/5 to-transparent">
             <CardContent className="p-5 text-center">
               <div className="w-10 h-10 mx-auto mb-3 p-2 bg-red-100 dark:bg-red-900/40 rounded-lg group-hover:bg-red-200 dark:group-hover:bg-red-800/50 transition-colors duration-200">
                 <Ban className="w-full h-full text-red-600 dark:text-red-400" />
@@ -635,8 +665,8 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-lg hover:border-yellow-500/50 transition-all duration-200 cursor-pointer group">
+        <motion.div variants={itemVariants} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+          <Card className="hover:shadow-xl hover:border-yellow-500/60 transition-all duration-200 cursor-pointer group bg-gradient-to-br from-yellow-500/5 to-transparent">
             <CardContent className="p-5 text-center">
               <div className="w-10 h-10 mx-auto mb-3 p-2 bg-yellow-100 dark:bg-yellow-900/40 rounded-lg group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-colors duration-200">
                 <AlertTriangle className="w-full h-full text-yellow-600 dark:text-yellow-400" />
@@ -651,8 +681,8 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-lg hover:border-green-500/50 transition-all duration-200 cursor-pointer group">
+        <motion.div variants={itemVariants} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+          <Card className="hover:shadow-xl hover:border-green-500/60 transition-all duration-200 cursor-pointer group bg-gradient-to-br from-green-500/5 to-transparent">
             <CardContent className="p-5 text-center">
               <div className="w-10 h-10 mx-auto mb-3 p-2 bg-green-100 dark:bg-green-900/40 rounded-lg group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors duration-200">
                 <Database className="w-full h-full text-green-600 dark:text-green-400" />

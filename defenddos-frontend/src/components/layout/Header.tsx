@@ -158,23 +158,22 @@ export function Header({ onMenuToggle, isMenuOpen }: HeaderProps) {
     <motion.header
       className={cn(
         'sticky top-0 z-40 w-full border-b transition-all duration-300',
-        isScrolled
-          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border-gray-200/30 dark:border-gray-700/30 shadow-2xl shadow-primary-500/5'
-          : 'bg-white/85 dark:bg-gray-900/85 backdrop-blur-xl border-gray-200/20 dark:border-gray-700/20 shadow-lg shadow-primary-500/3'
+        'bg-[#0a1628]/95 dark:bg-[#0a1628]/95 backdrop-blur-xl',
+        'border-gray-800/50 shadow-2xl shadow-black/10'
       )}
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
-        {/* Left Section - Logo and Navigation */}
-        <div className="flex items-center gap-4">
+        {/* Left Section - Logo and Search */}
+        <div className="flex items-center gap-4 flex-1 max-w-2xl">
           {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"
             size="sm"
             onClick={onMenuToggle}
-            className="lg:hidden"
+            className="lg:hidden text-gray-300 hover:text-white hover:bg-gray-800/50"
           >
             <motion.div
               animate={{ rotate: isMenuOpen ? 90 : 0 }}
@@ -191,87 +190,58 @@ export function Header({ onMenuToggle, isMenuOpen }: HeaderProps) {
             transition={{ duration: 0.2 }}
           >
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 rounded-xl blur-md opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-              <div className="relative p-2.5 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-xl shadow-xl border border-primary-400/20">
-                <motion.div
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Shield className="w-6 h-6 text-white drop-shadow-sm" />
-                </motion.div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-lg blur-sm opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+              <div className="relative p-2 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-lg shadow-lg">
+                <Shield className="w-5 h-5 text-white drop-shadow-sm" />
               </div>
             </div>
             <div className="hidden sm:block">
               <motion.h1 
-                className="text-xl font-bold bg-gradient-to-r from-primary-600 via-primary-700 to-primary-800 dark:from-primary-300 dark:via-primary-400 dark:to-primary-500 bg-clip-text text-transparent"
+                className="text-lg font-bold text-white"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
               >
                 DefenDDoS
               </motion.h1>
               <motion.p 
-                className="text-xs text-gray-500 dark:text-gray-400 font-medium"
+                className="text-[10px] text-emerald-400 font-medium"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
               >
-                Security Command Center
+                Protection Active
               </motion.p>
             </div>
           </motion.div>
-        </div>
 
-        {/* Center Section - Status */}
-        <div className="hidden md:flex items-center gap-4">
-          {/* System Status */}
-          <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200/60 dark:border-gray-700/60">
-            <motion.div
-              className={statusInfo.color}
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              {statusInfo.icon}
-            </motion.div>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {statusInfo.text}
-            </span>
-            <Badge 
-              status={statusInfo.status} 
-              size="sm"
-            >
-              {statusInfo.status.toUpperCase()}
-            </Badge>
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-md relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search IP addresses, logs..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            />
           </div>
-          
-          {/* Backend Connection Status */}
-          <BackendStatus showInline={true} />
         </div>
 
-        {/* Right Section - Actions */}
-        <div className="flex items-center gap-3">
-          {/* Search Button */}
-          <Button variant="ghost" size="sm" className="hidden sm:flex">
-            <Search className="w-4 h-4" />
-          </Button>
-
-          {/* Notifications */}
-          <div className="relative">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setIsNotificationsModalOpen(true)}
-            >
-              <Bell className="w-4 h-4" />
-            </Button>
-            {/* Notification badge */}
-            {notificationCount > 0 && (
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
-                <span className="text-xs text-white font-bold">
-                  {notificationCount > 99 ? '99+' : notificationCount}
-                </span>
-              </div>
-            )}
+        {/* Right Section - Status Indicators & Actions */}
+        <div className="flex items-center gap-2">
+          {/* Service Status Indicators */}
+          <div className="hidden lg:flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-medium text-gray-300">API</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-medium text-gray-300">ML</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-medium text-gray-300">DB</span>
+            </div>
           </div>
 
           {/* Theme Toggle */}
@@ -279,7 +249,7 @@ export function Header({ onMenuToggle, isMenuOpen }: HeaderProps) {
             variant="ghost"
             size="sm"
             onClick={toggleTheme}
-            className="relative overflow-hidden"
+            className="relative overflow-hidden text-gray-300 hover:text-white hover:bg-gray-800/50"
           >
             <motion.div
               animate={{ rotate: isDarkMode ? 180 : 0 }}
@@ -293,61 +263,41 @@ export function Header({ onMenuToggle, isMenuOpen }: HeaderProps) {
             </motion.div>
           </Button>
 
-          {/* Settings */}
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => setIsProfileModalOpen(true)}
-          >
-            <motion.div
-              whileHover={{ rotate: 90 }}
-              transition={{ duration: 0.3 }}
+          {/* Notifications */}
+          <div className="relative">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setIsNotificationsModalOpen(true)}
+              className="text-gray-300 hover:text-white hover:bg-gray-800/50"
             >
-              <Settings className="w-4 h-4" />
-            </motion.div>
-          </Button>
+              <Bell className="w-4 h-4" />
+            </Button>
+            {notificationCount > 0 && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-[10px] text-white font-bold">
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* User Profile */}
           <button
-            className="flex items-center gap-3 p-2 pr-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="flex items-center gap-2 p-1.5 pr-3 rounded-lg hover:bg-gray-800/50 transition-colors"
             onClick={() => setIsProfileModalOpen(true)}
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">
               {userProfile.name.split(' ').map(n => n[0]).join('')}
             </div>
-            <div className="hidden lg:block text-left">
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <div className="hidden xl:block text-left">
+              <p className="text-sm font-semibold text-gray-200">
                 {userProfile.name.split(' ')[0]}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {userProfile.role}
               </p>
             </div>
           </button>
         </div>
       </div>
-
-      {/* Mobile Status Bar */}
-      <motion.div
-        className="md:hidden px-6 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={statusInfo.color}>
-              {statusInfo.icon}
-            </div>
-            <span className="text-sm font-medium">
-              {statusInfo.text}
-            </span>
-          </div>
-          <Badge status={statusInfo.status} size="sm">
-            {statusInfo.status.toUpperCase()}
-          </Badge>
-        </div>
-      </motion.div>
       
       {/* User Profile Modal */}
       <UserProfileModal

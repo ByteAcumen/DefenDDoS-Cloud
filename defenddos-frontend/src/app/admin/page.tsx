@@ -1,613 +1,595 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Settings,
-  Shield,
   Users,
-  Database,
-  Bell,
-  Lock,
+  Shield,
+  Key,
+  Settings,
   Activity,
-  Server,
-  AlertTriangle,
+  Clock,
   CheckCircle,
-  Save,
-  RefreshCw,
+  XCircle,
+  Plus,
+  Edit,
+  Trash2,
   Eye,
   EyeOff,
-  Globe,
-  Zap,
-  Mail
+  Lock,
+  Unlock,
+  UserPlus,
+  Database,
+  Server,
+  AlertTriangle
 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Sidebar } from '@/components/layout/Sidebar';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { useSystemStatus, useMitigationStats } from '@/hooks/useDefenDDoS';
-import { cn } from '@/utils';
+import { MetricCard } from '@/components/charts/DataVisualizations';
+import { useDashboardData, useBackendHealth, useMLHealth } from '@/hooks/useBackendApi';
+import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 
-export default function AdminPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'general' | 'security' | 'mitigation' | 'notifications' | 'api'>('general');
-  const [showApiKey, setShowApiKey] = useState(false);
-  const { data: systemStatus } = useSystemStatus();
-  const { data: mitigationStats } = useMitigationStats();
-
-  // Settings state
-  const [settings, setSettings] = useState({
-    general: {
-      systemName: 'DefenDDoS Security System',
-      timezone: 'UTC',
-      language: 'en',
-      autoBackup: true,
-      backupInterval: 'daily'
-    },
-    security: {
-      autoBlock: true,
-      blockDuration: 3600,
-      threatThreshold: 0.75,
-      enableMLDetection: true,
-      logRetention: 30
-    },
-    mitigation: {
-      autoMitigation: true,
-      rateLimit: 1000,
-      connectionLimit: 100,
-      blocklistUpdate: 'auto'
-    },
-    notifications: {
-      emailAlerts: true,
-      slackIntegration: false,
-      alertThreshold: 'high',
-      emailAddress: 'admin@defenddos.com'
-    },
-    api: {
-      apiKey: '••••••••••••••••••••••••',
-      rateLimitEnabled: true,
-      apiRateLimit: 100,
-      corsEnabled: true
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.05,
+      duration: 0.3,
+      ease: [0.4, 0, 0.2, 1] as any
     }
-  });
+  }
+};
 
-  const tabs = [
-    { id: 'general', label: 'General', icon: <Settings className="w-4 h-4" /> },
-    { id: 'security', label: 'Security', icon: <Shield className="w-4 h-4" /> },
-    { id: 'mitigation', label: 'Mitigation', icon: <AlertTriangle className="w-4 h-4" /> },
-    { id: 'notifications', label: 'Notifications', icon: <Bell className="w-4 h-4" /> },
-    { id: 'api', label: 'API', icon: <Database className="w-4 h-4" /> }
-  ];
-
-  const handleSave = () => {
-    // In production, this would call a backend API to save settings
-    toast.success('Settings saved successfully');
-    console.log('Saving settings:', settings);
-  };
-
-  const handleReset = () => {
-    toast('Settings reset to defaults');
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
+const itemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    scale: 1,
+    transition: { 
+      duration: 0.3,
+      ease: [0.4, 0, 0.2, 1] as any
     }
+  }
+};
+
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: 'admin' | 'operator' | 'viewer';
+  status: 'active' | 'inactive';
+  lastLogin: string;
+  createdAt: string;
+  permissions: string[];
+}
+
+interface SystemConfig {
+  id: string;
+  key: string;
+  value: string;
+  category: string;
+  description: string;
+  editable: boolean;
+}
+
+export default function AdminPanelPage() {
+  const [activeTab, setActiveTab] = useState<'users' | 'config' | 'security'>('users');
+  const [showInactive, setShowInactive] = useState(false);
+
+  // Data fetching
+  const { securityDashboard, realtimeMetrics, isLoading } = useDashboardData();
+  const { data: backendHealth } = useBackendHealth();
+  const { data: mlHealth } = useMLHealth();
+
+  // Mock users data (in real app, fetch from backend)
+  const users: User[] = useMemo(() => [
+    {
+      id: '1',
+      username: 'admin',
+      email: 'admin@defenddos.local',
+      role: 'admin',
+      status: 'active',
+      lastLogin: new Date(Date.now() - 300000).toISOString(),
+      createdAt: '2025-01-01T00:00:00Z',
+      permissions: ['full_access']
+    },
+    {
+      id: '2',
+      username: 'security_analyst',
+      email: 'analyst@defenddos.local',
+      role: 'operator',
+      status: 'active',
+      lastLogin: new Date(Date.now() - 3600000).toISOString(),
+      createdAt: '2025-01-15T00:00:00Z',
+      permissions: ['view_threats', 'block_ips', 'view_logs']
+    },
+    {
+      id: '3',
+      username: 'monitor',
+      email: 'monitor@defenddos.local',
+      role: 'viewer',
+      status: 'active',
+      lastLogin: new Date(Date.now() - 7200000).toISOString(),
+      createdAt: '2025-02-01T00:00:00Z',
+      permissions: ['view_dashboard', 'view_logs']
+    }
+  ], []);
+
+  // System configuration
+  const systemConfig: SystemConfig[] = useMemo(() => [
+    {
+      id: '1',
+      key: 'threat_threshold',
+      value: '1000',
+      category: 'Detection',
+      description: 'Packets per second threshold for threat detection',
+      editable: true
+    },
+    {
+      id: '2',
+      key: 'auto_block_enabled',
+      value: 'true',
+      category: 'Mitigation',
+      description: 'Automatically block IPs exceeding threat threshold',
+      editable: true
+    },
+    {
+      id: '3',
+      key: 'ml_confidence_threshold',
+      value: '0.85',
+      category: 'ML Detection',
+      description: 'Minimum ML confidence score for attack classification',
+      editable: true
+    },
+    {
+      id: '4',
+      key: 'data_retention_days',
+      value: '30',
+      category: 'Storage',
+      description: 'Number of days to retain traffic data in InfluxDB',
+      editable: true
+    },
+    {
+      id: '5',
+      key: 'backend_version',
+      value: '1.0.0',
+      category: 'System',
+      description: 'DefenDDoS backend service version',
+      editable: false
+    }
+  ], []);
+
+  const filteredUsers = useMemo(() => {
+    return showInactive ? users : users.filter(u => u.status === 'active');
+  }, [users, showInactive]);
+
+  // Stats
+  const stats = {
+    totalUsers: users.length,
+    activeUsers: users.filter(u => u.status === 'active').length,
+    adminUsers: users.filter(u => u.role === 'admin').length,
+    recentLogins: users.filter(u => {
+      const loginTime = new Date(u.lastLogin).getTime();
+      const oneHourAgo = Date.now() - 3600000;
+      return loginTime > oneHourAgo;
+    }).length
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+  const formatTimeAgo = (timestamp: string) => {
+    const seconds = Math.floor((new Date().getTime() - new Date(timestamp).getTime()) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'admin': return 'danger';
+      case 'operator': return 'warning';
+      default: return 'default';
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} isMenuOpen={sidebarOpen} />
-      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-
-      <main className={cn(
-        'transition-all duration-500',
-        sidebarOpen ? 'ml-[280px]' : 'ml-[80px]',
-        'px-6 py-8'
-      )}>
-        {/* Page Header */}
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                System Administration
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Configure and manage your DefenDDoS system settings
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={handleReset}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Reset
-              </Button>
-              <Button onClick={handleSave}>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
+    <div className="space-y-6">
+      {/* Enhanced Header - Admin Theme */}
+      <motion.div
+        className="relative overflow-hidden bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-fuchsia-500/10 rounded-xl md:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-violet-500/20 shadow-2xl shadow-violet-500/10"
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+      >
+        {/* Animated admin pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_35px,rgba(139,92,246,0.5)_35px,rgba(139,92,246,0.5)_70px)]" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background/95 to-transparent" />
+        
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <motion.div 
+                className="p-2 sm:p-3 bg-violet-500/20 rounded-lg sm:rounded-xl border-2 border-violet-500/30"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
+                <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-violet-500" />
+              </motion.div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+                    Admin Control Panel
+                  </h1>
+                  <Badge variant="danger" className="font-mono text-[10px]">
+                    RESTRICTED
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">
+                  👤 User management, system configuration, and security settings
+                </p>
+              </div>
             </div>
           </div>
-        </motion.div>
+          
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Admin Status */}
+            <motion.div 
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-card border-2 border-violet-500/30 shadow-lg"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Lock className="w-4 h-4 text-violet-500" />
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-violet-500">ADMIN ACCESS</span>
+                <span className="text-xs text-muted-foreground">Full Privileges</span>
+              </div>
+            </motion.div>
 
-        {/* System Status Cards */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={itemVariants}>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">System Status</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                      {(systemStatus as any)?.status || 'Operational'}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Blocked IPs</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                      {(mitigationStats as any)?.data?.totalBlockedIps || 0}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-red-100 dark:bg-red-900 rounded-xl">
-                    <Shield className="w-6 h-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">ML Detection</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                      Active
-                    </p>
-                  </div>
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-xl">
-                    <Activity className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Uptime</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                      99.9%
-                    </p>
-                  </div>
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-xl">
-                    <Server className="w-6 h-6 text-purple-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </motion.div>
-
-        {/* Settings Panel */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card>
-            <div className="border-b border-gray-200 dark:border-gray-700 px-6 pt-6">
-              <nav className="flex gap-2 -mb-px">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={cn(
-                      'flex items-center gap-2 px-5 py-3 font-semibold transition-all border-b-2',
-                      activeTab === tab.id
-                        ? 'text-primary-600 dark:text-primary-400 border-primary-600 dark:border-primary-400'
-                        : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
-                    )}
-                  >
-                    {tab.icon}
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
+            {/* Tab Navigation */}
+            <div className="flex items-center gap-1 bg-card rounded-lg sm:rounded-xl p-1 border border-border/50">
+              {(['users', 'config', 'security'] as const).map((tab) => (
+                <Button
+                  key={tab}
+                  size="sm"
+                  variant={activeTab === tab ? 'primary' : 'ghost'}
+                  onClick={() => setActiveTab(tab)}
+                  leftIcon={
+                    tab === 'users' ? <Users className="w-3 h-3" /> :
+                    tab === 'config' ? <Settings className="w-3 h-3" /> :
+                    <Shield className="w-3 h-3" />
+                  }
+                  className="text-xs capitalize"
+                >
+                  {tab}
+                </Button>
+              ))}
             </div>
+          </div>
+        </div>
+      </motion.div>
 
-            <CardContent className="p-6">
-              {/* General Settings */}
-              {activeTab === 'general' && (
-                <motion.div
-                  key="general"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      System Name
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.general.systemName}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        general: { ...settings.general, systemName: e.target.value }
-                      })}
-                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Timezone
-                      </label>
-                      <select
-                        value={settings.general.timezone}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          general: { ...settings.general, timezone: e.target.value }
-                        })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-                      >
-                        <option value="UTC">UTC</option>
-                        <option value="America/New_York">Eastern Time</option>
-                        <option value="America/Los_Angeles">Pacific Time</option>
-                        <option value="Europe/London">London</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Language
-                      </label>
-                      <select
-                        value={settings.general.language}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          general: { ...settings.general, language: e.target.value }
-                        })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-                      >
-                        <option value="en">English</option>
-                        <option value="es">Español</option>
-                        <option value="fr">Français</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <div>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">Auto Backup</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Automatically backup system configuration</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.general.autoBackup}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          general: { ...settings.general, autoBackup: e.target.checked }
-                        })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Security Settings */}
-              {activeTab === 'security' && (
-                <motion.div
-                  key="security"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">Auto Block Threats</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Automatically block detected threats</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.security.autoBlock}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          security: { ...settings.security, autoBlock: e.target.checked }
-                        })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Block Duration (seconds)
-                    </label>
-                    <input
-                      type="number"
-                      value={settings.security.blockDuration}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        security: { ...settings.security, blockDuration: parseInt(e.target.value) }
-                      })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Threat Detection Threshold: {settings.security.threatThreshold}
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={settings.security.threatThreshold}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        security: { ...settings.security, threatThreshold: parseFloat(e.target.value) }
-                      })}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                    />
-                    <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      <span>Less Sensitive</span>
-                      <span>More Sensitive</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">ML Detection</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Use machine learning for threat detection</p>
-                    </div>
-                    <Badge variant="success">ENABLED</Badge>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Mitigation Settings */}
-              {activeTab === 'mitigation' && (
-                <motion.div
-                  key="mitigation"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">Auto Mitigation</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Automatically mitigate detected attacks</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.mitigation.autoMitigation}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          mitigation: { ...settings.mitigation, autoMitigation: e.target.checked }
-                        })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Rate Limit (req/min)
-                      </label>
-                      <input
-                        type="number"
-                        value={settings.mitigation.rateLimit}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          mitigation: { ...settings.mitigation, rateLimit: parseInt(e.target.value) }
-                        })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Connection Limit
-                      </label>
-                      <input
-                        type="number"
-                        value={settings.mitigation.connectionLimit}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          mitigation: { ...settings.mitigation, connectionLimit: parseInt(e.target.value) }
-                        })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Notification Settings */}
-              {activeTab === 'notifications' && (
-                <motion.div
-                  key="notifications"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-5 h-5 text-gray-600" />
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">Email Alerts</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Receive alerts via email</p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.notifications.emailAlerts}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          notifications: { ...settings.notifications, emailAlerts: e.target.checked }
-                        })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={settings.notifications.emailAddress}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        notifications: { ...settings.notifications, emailAddress: e.target.value }
-                      })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Alert Threshold
-                    </label>
-                    <select
-                      value={settings.notifications.alertThreshold}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        notifications: { ...settings.notifications, alertThreshold: e.target.value }
-                      })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="low">Low - All threats</option>
-                      <option value="medium">Medium - Moderate and above</option>
-                      <option value="high">High - Critical only</option>
-                    </select>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* API Settings */}
-              {activeTab === 'api' && (
-                <motion.div
-                  key="api"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      API Key
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type={showApiKey ? 'text' : 'password'}
-                        value={settings.api.apiKey}
-                        readOnly
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                      >
-                        {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                      <Button variant="outline">
-                        Regenerate
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">API Rate Limiting</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Limit API requests per minute</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.api.rateLimitEnabled}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          api: { ...settings.api, rateLimitEnabled: e.target.checked }
-                        })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">CORS Enabled</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Allow cross-origin requests</p>
-                    </div>
-                    <Badge variant="success">ENABLED</Badge>
-                  </div>
-
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <Globe className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-blue-900 dark:text-blue-100">API Endpoint</p>
-                        <p className="text-sm text-blue-700 dark:text-blue-300 font-mono mt-1">
-                          http://localhost:8082/api/v1
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </CardContent>
-          </Card>
+      {/* Statistics Cards */}
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants}>
+          <MetricCard
+            title="Total Users"
+            value={stats.totalUsers}
+            icon={<Users className="w-[18px] h-[18px]" />}
+            change={{
+              value: stats.activeUsers,
+              type: 'increase',
+              timeframe: 'active'
+            }}
+            color="purple"
+            loading={isLoading}
+          />
         </motion.div>
-      </main>
+
+        <motion.div variants={itemVariants}>
+          <MetricCard
+            title="Admins"
+            value={stats.adminUsers}
+            icon={<Shield className="w-[18px] h-[18px]" />}
+            change={{
+              value: Math.round((stats.adminUsers / stats.totalUsers) * 100),
+              type: 'increase',
+              timeframe: '% of total'
+            }}
+            color="red"
+            loading={isLoading}
+          />
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <MetricCard
+            title="Recent Logins"
+            value={stats.recentLogins}
+            icon={<Activity className="w-[18px] h-[18px]" />}
+            change={{
+              value: stats.recentLogins,
+              type: 'increase',
+              timeframe: 'last hour'
+            }}
+            color="green"
+            loading={isLoading}
+          />
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <MetricCard
+            title="System Health"
+            value={backendHealth && mlHealth ? '100%' : '75%'}
+            icon={<Server className="w-[18px] h-[18px]" />}
+            change={{
+              value: 0,
+              type: 'increase',
+              timeframe: 'all services'
+            }}
+            color={backendHealth && mlHealth ? 'green' : 'yellow'}
+            loading={isLoading}
+          />
+        </motion.div>
+      </motion.div>
+
+      {/* Main Content */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'users' && (
+          <motion.div
+            key="users"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            <motion.div variants={itemVariants}>
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                      <Users className="w-[18px] h-[18px] text-primary" />
+                      User Management
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowInactive(!showInactive)}
+                        leftIcon={showInactive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        className="text-xs"
+                      >
+                        {showInactive ? 'Hide' : 'Show'} Inactive
+                      </Button>
+                      <Button
+                        size="sm"
+                        leftIcon={<UserPlus className="w-3 h-3" />}
+                        onClick={() => toast.success('Add user feature coming soon')}
+                        className="text-xs"
+                      >
+                        Add User
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {filteredUsers.map((user, index) => (
+                      <motion.div
+                        key={user.id}
+                        className="p-4 rounded-lg border-2 border-border hover:border-primary/50 transition-all duration-300 group"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.01, x: 4 }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="p-3 bg-violet-500/10 rounded-lg">
+                              <Users className="w-5 h-5 text-violet-500" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-foreground">{user.username}</h4>
+                                <Badge variant={getRoleBadgeVariant(user.role)} className="text-[10px]">
+                                  {user.role.toUpperCase()}
+                                </Badge>
+                                {user.status === 'active' && (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  <span>Last login: {formatTimeAgo(user.lastLogin)}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Key className="w-3 h-3" />
+                                  <span>{user.permissions.length} permissions</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button size="sm" variant="outline" onClick={() => toast('Edit user feature coming soon', { icon: 'ℹ️' })}>
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button size="sm" variant="outline" className="text-red-500 hover:bg-red-500/10">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {activeTab === 'config' && (
+          <motion.div
+            key="config"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            <motion.div variants={itemVariants}>
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Settings className="w-[18px] h-[18px] text-primary" />
+                    System Configuration
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {systemConfig.map((config, index) => (
+                      <motion.div
+                        key={config.id}
+                        className="p-4 rounded-lg border-2 border-border hover:border-primary/50 transition-all duration-300"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <code className="text-sm font-mono font-semibold text-foreground px-2 py-0.5 bg-muted rounded">
+                                {config.key}
+                              </code>
+                              <Badge variant="default" className="text-[10px]">
+                                {config.category}
+                              </Badge>
+                              {!config.editable && (
+                                <Lock className="w-3 h-3 text-muted-foreground" />
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">{config.description}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">Value:</span>
+                              <code className="text-sm font-mono text-primary px-2 py-1 bg-primary/10 rounded">
+                                {config.value}
+                              </code>
+                            </div>
+                          </div>
+                          {config.editable && (
+                            <Button size="sm" variant="outline" onClick={() => toast('Edit config feature coming soon', { icon: 'ℹ️' })}>
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {activeTab === 'security' && (
+          <motion.div
+            key="security"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            <motion.div variants={itemVariants}>
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader>
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Shield className="w-[18px] h-[18px] text-primary" />
+                    Security Settings
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* API Keys */}
+                    <div>
+                      <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
+                        <Key className="w-4 h-4" />
+                        API Keys
+                      </h4>
+                      <div className="p-4 rounded-lg border-2 border-border bg-muted/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">Backend API Key</span>
+                          <Badge variant="success" className="text-[10px]">ACTIVE</Badge>
+                        </div>
+                        <code className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded">
+                          ••••••••••••••••••••••••••••••••
+                        </code>
+                      </div>
+                    </div>
+
+                    {/* Access Control */}
+                    <div>
+                      <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        Access Control
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Two-Factor Authentication</p>
+                            <p className="text-xs text-muted-foreground">Require 2FA for admin accounts</p>
+                          </div>
+                          <Badge variant="warning" className="text-[10px]">RECOMMENDED</Badge>
+                        </div>
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Session Timeout</p>
+                            <p className="text-xs text-muted-foreground">Auto-logout after 30 minutes of inactivity</p>
+                          </div>
+                          <Badge variant="success" className="text-[10px]">ENABLED</Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Audit Logs */}
+                    <div>
+                      <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
+                        <Database className="w-4 h-4" />
+                        Recent Admin Actions
+                      </h4>
+                      <div className="space-y-2">
+                        {[
+                          { action: 'User login', user: 'admin', time: '2m ago' },
+                          { action: 'Configuration updated', user: 'admin', time: '15m ago' },
+                          { action: 'IP blocked manually', user: 'security_analyst', time: '1h ago' }
+                        ].map((log, i) => (
+                          <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 text-xs">
+                            <div className="flex items-center gap-2">
+                              <Activity className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-foreground">{log.action}</span>
+                              <span className="text-muted-foreground">by {log.user}</span>
+                            </div>
+                            <span className="text-muted-foreground">{log.time}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

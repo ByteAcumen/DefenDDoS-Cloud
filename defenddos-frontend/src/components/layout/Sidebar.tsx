@@ -14,10 +14,10 @@ import {
   Settings,
   Shield,
   ChevronLeft,
-  ChevronRight,
   Zap,
-  Eye,
-  BarChart3
+  BarChart3,
+  Bell,
+  Users
 } from 'lucide-react';
 import { cn } from '@/utils';
 import { Badge } from '@/components/ui/Badge';
@@ -40,66 +40,61 @@ const navigationItems: NavItem[] = [
   {
     title: 'Dashboard',
     href: '/dashboard',
-    icon: <LayoutDashboard className="w-5 h-5" />,
-    description: 'Overview and system status'
-  },
-  {
-    title: 'Traffic Monitor',
-    href: '/traffic',
-    icon: <Network className="w-5 h-5" />,
-    description: 'Real-time traffic analysis'
-  },
-  {
-    title: 'Blocked IPs',
-    href: '/blocked-ips',
-    icon: <Ban className="w-5 h-5" />,
-    description: 'Manage blocked addresses'
-    // Badge added dynamically in component based on real backend data
-  },
-  {
-    title: 'Threat Detection',
-    href: '/threats',
-    icon: <AlertTriangle className="w-5 h-5" />,
-    description: 'ML-powered threat analysis'
+    icon: <LayoutDashboard className="w-4 h-4" />,
+    description: 'Overview'
   },
   {
     title: 'Analytics',
     href: '/analytics',
-    icon: <BarChart3 className="w-5 h-5" />,
-    description: 'Performance and trends'
+    icon: <BarChart3 className="w-4 h-4" />,
+    description: 'Reports'
   },
   {
-    title: 'System Monitor',
+    title: 'Threat Detection',
+    href: '/threats',
+    icon: <AlertTriangle className="w-4 h-4" />,
+    description: 'ML Detection'
+  },
+  {
+    title: 'Traffic Monitor',
+    href: '/traffic',
+    icon: <Network className="w-4 h-4" />,
+    description: 'Network Traffic'
+  },
+  {
+    title: 'Blocked IPs',
+    href: '/blocked-ips',
+    icon: <Ban className="w-4 h-4" />,
+    description: 'IP Management'
+  },
+  {
+    title: 'System Health',
     href: '/system',
-    icon: <Activity className="w-5 h-5" />,
-    description: 'System health and performance'
+    icon: <Activity className="w-4 h-4" />,
+    description: 'Service Status'
   },
   {
-    title: 'Admin',
+    title: 'Notifications',
+    href: '/notifications',
+    icon: <Bell className="w-4 h-4" />,
+    badge: 'new',
+    badgeVariant: 'warning',
+    description: 'Alerts & Events'
+  },
+  {
+    title: 'Admin Panel',
     href: '/admin',
-    icon: <Settings className="w-5 h-5" />,
-    description: 'System administration'
+    icon: <Users className="w-4 h-4" />,
+    description: 'User Management'
   }
 ];
 
 const quickActions: NavItem[] = [
   {
-    title: 'Trigger Scan',
-    href: '/dashboard?action=scan',
-    icon: <Zap className="w-5 h-5" />,
-    description: 'Manual threat detection'
-  },
-  {
-    title: 'Live Monitoring',
-    href: '/traffic?live=true',
-    icon: <Eye className="w-5 h-5" />,
-    description: 'Real-time traffic view'
-  },
-  {
-    title: 'Connection Test',
-    href: '/connection-test',
-    icon: <Activity className="w-5 h-5" />,
-    description: 'Test backend connectivity'
+    title: 'Settings',
+    href: '/settings',
+    icon: <Settings className="w-4 h-4" />,
+    description: 'Configuration'
   }
 ];
 
@@ -112,8 +107,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const blockedCount = blockedIPsData?.count || 0;
 
   const sidebarVariants = {
-    expanded: { width: '280px' },
-    collapsed: { width: '80px' },
+    expanded: { width: '240px' },
+    collapsed: { width: '60px' },
   };
 
   const contentVariants = {
@@ -122,17 +117,17 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   };
 
   const NavItem = ({ item, isQuickAction = false }: { item: NavItem; isQuickAction?: boolean }) => {
-    const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/');
+    const isActive = !pathname ? false : (pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/'));
     const isHovered = hoveredItem === item.href;
 
     return (
       <Link href={item.href}>
         <div
           className={cn(
-            'relative group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
-            'hover:bg-gray-100 dark:hover:bg-gray-800',
-            isActive && 'bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800',
-            isQuickAction && 'text-sm'
+            'relative group flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200',
+            'hover:bg-gray-800/50',
+            isActive && 'bg-blue-500/10 text-blue-400',
+            !isActive && 'text-gray-400 hover:text-gray-200'
           )}
           onMouseEnter={() => setHoveredItem(item.href)}
           onMouseLeave={() => setHoveredItem(null)}
@@ -140,20 +135,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           {/* Active indicator */}
           {isActive && (
             <motion.div
-              className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 rounded-r-full"
+              className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 rounded-r-full"
               layoutId="activeIndicator"
-              transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+              transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
             />
           )}
 
           {/* Icon */}
-          <div
-            className={cn(
-              'flex-shrink-0 transition-colors duration-200',
-              isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400',
-              'group-hover:text-primary-600 dark:group-hover:text-primary-400'
-            )}
-          >
+          <div className="flex-shrink-0">
             {item.icon}
           </div>
 
@@ -161,37 +150,24 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <AnimatePresence mode="wait">
             {isOpen && (
               <motion.div
-                className="flex-1 min-w-0"
+                className="flex-1 min-w-0 flex items-center justify-between"
                 variants={contentVariants}
                 initial="collapsed"
                 animate="expanded"
                 exit="collapsed"
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.15 }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0">
-                    <p className={cn(
-                      'font-semibold text-sm transition-colors duration-200',
-                      isActive ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-gray-100'
-                    )}>
-                      {item.title}
-                    </p>
-                    {item.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                        {item.description}
-                      </p>
-                    )}
-                  </div>
-                  {item.badge && (
-                    <Badge
-                      variant={item.badgeVariant || 'default'}
-                      size="sm"
-                      {...(item.badgeVariant === 'danger' && { pulse: true })}
-                    >
-                      {item.badge}
-                    </Badge>
-                  )}
-                </div>
+                <span className="font-medium text-[13px] truncate">
+                  {item.title}
+                </span>
+                {item.badge && (
+                  <Badge
+                    variant={item.badgeVariant || 'default'}
+                    size="sm"
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -201,7 +177,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             <AnimatePresence>
               {isHovered && (
                 <motion.div
-                  className="fixed left-[88px] px-3 py-2 bg-gray-900 dark:bg-gray-800 text-white text-sm rounded-lg shadow-xl z-[100] whitespace-nowrap pointer-events-none"
+                  className="fixed left-[68px] px-3 py-2 bg-gray-800 text-white text-sm rounded-lg shadow-xl z-[100] whitespace-nowrap pointer-events-none border border-gray-700"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
@@ -209,11 +185,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   style={{ top: 'auto' }}
                 >
                   <div className="font-medium">{item.title}</div>
-                  {item.description && (
-                    <div className="text-xs text-gray-300 mt-0.5">{item.description}</div>
-                  )}
-                  {/* Arrow */}
-                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 dark:bg-gray-800 rotate-45" />
+                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-800 border-l border-t border-gray-700 rotate-45" />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -226,100 +198,80 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   return (
     <motion.aside
       className={cn(
-        'fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl',
-        'border-r border-gray-200/50 dark:border-gray-700/50 z-30 overflow-hidden'
+        'fixed left-0 top-16 h-[calc(100vh-4rem)] bg-[#0f1f35]/95 backdrop-blur-xl',
+        'border-r border-gray-800/50 z-30 overflow-hidden shadow-2xl'
       )}
       variants={sidebarVariants}
       animate={isOpen ? 'expanded' : 'collapsed'}
-      transition={{ type: 'spring', bounce: 0.1, duration: 0.5 }}
+      transition={{ type: 'spring', bounce: 0.1, duration: 0.4 }}
     >
       <div className="flex flex-col h-full">
         {/* Toggle Button */}
-        <div className="flex items-center justify-end p-4 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex items-center justify-end p-3 border-b border-gray-800/50">
           <motion.button
             onClick={onToggle}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-400 hover:text-gray-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <motion.div
-              animate={{ rotate: isOpen ? 180 : 0 }}
+              animate={{ rotate: isOpen ? 0 : 180 }}
               transition={{ duration: 0.3 }}
             >
-              {isOpen ? (
-                <ChevronLeft className="w-5 h-5" />
-              ) : (
-                <ChevronRight className="w-5 h-5" />
-              )}
+              <ChevronLeft className="w-4 h-4" />
             </motion.div>
           </motion.button>
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 px-4 py-6 overflow-y-auto">
-          <nav className="space-y-2">
-            {/* Main Navigation */}
-            <div className="space-y-1">
-              {navigationItems.map((item) => {
-                // Add dynamic badge for Blocked IPs
-                const itemWithBadge = item.href === '/blocked-ips' ? {
-                  ...item,
-                  badge: blockedCount > 0 ? blockedCount.toString() : undefined,
-                  badgeVariant: 'danger' as const
-                } : item;
-                return <NavItem key={item.href} item={itemWithBadge} />;
-              })}
-            </div>
+        <div className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          <nav className="space-y-1">
+            {navigationItems.map((item) => {
+              // Add dynamic badge for Blocked IPs
+              const itemWithBadge = item.href === '/blocked-ips' ? {
+                ...item,
+                badge: blockedCount > 0 ? blockedCount.toString() : undefined,
+                badgeVariant: 'danger' as const
+              } : item;
+              return <NavItem key={item.href} item={itemWithBadge} />;
+            })}
 
             {/* Separator */}
-            <div className="py-4">
-              <div className="border-t border-gray-200/50 dark:border-gray-700/50" />
+            <div className="py-3">
+              <div className="border-t border-gray-800/50" />
             </div>
 
             {/* Quick Actions */}
-            <div className="space-y-1">
-              <AnimatePresence>
-                {isOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                  >
-                    Quick Actions
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {quickActions.map((item) => (
-                <NavItem key={item.href} item={item} isQuickAction />
-              ))}
-            </div>
+            {quickActions.map((item) => (
+              <NavItem key={item.href} item={item} isQuickAction />
+            ))}
           </nav>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-200/50 dark:border-gray-700/50">
-          <motion.div
-            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Shield className="w-5 h-5 text-primary-500" />
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  variants={contentVariants}
-                  initial="collapsed"
-                  animate="expanded"
-                  exit="collapsed"
-                  className="flex-1"
-                >
-                  <p className="font-medium text-gray-900 dark:text-gray-100">DefenDDoS</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">v2.0.0</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+        {/* Footer - Compact Version */}
+        <div className="p-3 border-t border-gray-800/50">
+          <AnimatePresence>
+            {isOpen ? (
+              <motion.div
+                className="flex items-center gap-2 text-gray-500 text-xs"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Shield className="w-3.5 h-3.5 text-blue-500" />
+                <span>v2.0.0</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                className="flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Shield className="w-4 h-4 text-blue-500" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.aside>

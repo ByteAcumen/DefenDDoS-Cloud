@@ -1,0 +1,472 @@
+###
+# DefenDDoS Backend API - Comprehensive Test Suite
+# Use with VS Code REST Client extension
+# All 21 endpoints covered
+###
+
+@baseUrl = http://localhost:8082
+@mlUrl = http://localhost:8000
+
+###############################################################################
+# 1. HEALTH CHECKS
+###############################################################################
+
+### 1.1 Backend Health Check
+GET {{baseUrl}}/actuator/health
+Accept: application/json
+
+### 1.2 Backend Info
+GET {{baseUrl}}/actuator/info
+Accept: application/json
+
+### 1.3 ML Service Health Check
+GET {{mlUrl}}/health
+Accept: application/json
+
+### 1.4 ML Service Health via Backend
+GET {{baseUrl}}/api/v1/traffic/ml-health
+Accept: application/json
+
+### 1.5 InfluxDB Health Check
+GET http://localhost:8086/health
+Accept: application/json
+
+
+###############################################################################
+# 2. TRAFFIC MANAGEMENT - Normal Traffic
+###############################################################################
+
+### 2.1 Ingest Normal Traffic (Safe IP)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.1.1",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 500,
+  "byteCount": 32000
+}
+
+### 2.2 Ingest Normal Traffic (Another Safe IP)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.1.10",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 1000,
+  "byteCount": 64000
+}
+
+### 2.3 Query Recent Traffic (Last 5 minutes)
+GET {{baseUrl}}/api/v1/traffic/query?range=-5m
+Accept: application/json
+
+### 2.4 Query Traffic (Last 1 hour)
+GET {{baseUrl}}/api/v1/traffic/query?range=-1h
+Accept: application/json
+
+### 2.5 Get Traffic Summary (Last 1 hour)
+GET {{baseUrl}}/api/v1/traffic/summary?duration=1h
+Accept: application/json
+
+### 2.6 Get Visualization Data (Last 1 hour, 5 min intervals)
+GET {{baseUrl}}/api/v1/traffic/visualization?duration=1h&interval=5m
+Accept: application/json
+
+
+###############################################################################
+# 3. TRAFFIC MANAGEMENT - Attack Traffic
+###############################################################################
+
+### 3.1 Ingest Attack Traffic (High Volume - Should be blocked)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "203.0.113.99",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 150000,
+  "byteCount": 9600000
+}
+
+### 3.2 Ingest Attack Traffic (Another Malicious IP)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "45.33.32.156",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 125000,
+  "byteCount": 8000000
+}
+
+### 3.3 Ingest Borderline Traffic (Medium Risk)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "198.51.100.50",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 50000,
+  "byteCount": 3200000
+}
+
+
+###############################################################################
+# 4. ML PREDICTIONS
+###############################################################################
+
+### 4.1 Predict Normal Traffic
+POST {{baseUrl}}/api/v1/traffic/predict-attack
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.1.1",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 500,
+  "byteCount": 32000
+}
+
+### 4.2 Predict Attack Traffic
+POST {{baseUrl}}/api/v1/traffic/predict-attack
+Content-Type: application/json
+
+{
+  "sourceIp": "45.33.32.156",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 125000,
+  "byteCount": 8000000
+}
+
+### 4.3 Predict Borderline Traffic
+POST {{baseUrl}}/api/v1/traffic/predict-attack
+Content-Type: application/json
+
+{
+  "sourceIp": "198.51.100.50",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 50000,
+  "byteCount": 3200000
+}
+
+
+###############################################################################
+# 5. MITIGATION - Manual IP Blocking
+###############################################################################
+
+### 5.1 Block IP Manually (Test IP 1)
+POST {{baseUrl}}/api/v1/mitigation/block/203.0.113.99?reason=Manual%20test%20blocking
+Content-Type: application/json
+
+### 5.2 Block IP Manually (Test IP 2)
+POST {{baseUrl}}/api/v1/mitigation/block/45.33.32.156?reason=Suspected%20DDoS%20attack
+Content-Type: application/json
+
+### 5.3 Block IP Manually (Test IP 3)
+POST {{baseUrl}}/api/v1/mitigation/block/198.51.100.50?reason=High%20traffic%20volume
+Content-Type: application/json
+
+### 5.4 Check If IP is Blocked (Test IP 1)
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/203.0.113.99
+Accept: application/json
+
+### 5.5 Check If IP is Blocked (Test IP 2)
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/45.33.32.156
+Accept: application/json
+
+### 5.6 Check If Safe IP is Blocked
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/192.168.1.1
+Accept: application/json
+
+### 5.7 List All Blocked IPs
+GET {{baseUrl}}/api/v1/mitigation/blocked
+Accept: application/json
+
+### 5.8 Get Mitigation Statistics
+GET {{baseUrl}}/api/v1/mitigation/stats
+Accept: application/json
+
+
+###############################################################################
+# 6. MITIGATION - Unblocking
+###############################################################################
+
+### 6.1 Unblock IP (Test IP 1)
+POST {{baseUrl}}/api/v1/mitigation/unblock/203.0.113.99
+Content-Type: application/json
+
+### 6.2 Unblock IP (Test IP 2)
+POST {{baseUrl}}/api/v1/mitigation/unblock/45.33.32.156
+Content-Type: application/json
+
+### 6.3 Unblock IP (Test IP 3)
+POST {{baseUrl}}/api/v1/mitigation/unblock/198.51.100.50
+Content-Type: application/json
+
+### 6.4 Verify Unblocking (Check IP 1)
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/203.0.113.99
+Accept: application/json
+
+
+###############################################################################
+# 7. SECURITY DASHBOARD
+###############################################################################
+
+### 7.1 Get Security Dashboard
+GET {{baseUrl}}/api/v1/security/dashboard
+Accept: application/json
+
+### 7.2 Get System Status
+GET {{baseUrl}}/api/v1/security/status
+Accept: application/json
+
+### 7.3 Manually Trigger Detection
+POST {{baseUrl}}/api/v1/security/trigger-detection
+Content-Type: application/json
+
+### 7.4 Analyze Specific IP
+POST {{baseUrl}}/api/v1/security/analyze/203.0.113.99
+Content-Type: application/json
+
+### 7.5 Test Alert System
+POST {{baseUrl}}/api/v1/security/test-alert
+Content-Type: application/json
+
+
+###############################################################################
+# 8. COMPLETE TEST SCENARIOS
+###############################################################################
+
+### 8.1 SCENARIO: Normal Traffic Flow
+# Step 1: Ingest normal traffic
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.10.100",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 800,
+  "byteCount": 51200
+}
+
+### 8.2 Step 2: Check if classified as attack
+POST {{baseUrl}}/api/v1/traffic/predict-attack
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.10.100",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 800,
+  "byteCount": 51200
+}
+
+### 8.3 Step 3: Verify IP is not blocked
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/192.168.10.100
+Accept: application/json
+
+
+### 8.4 SCENARIO: Attack Detection & Auto-Blocking
+# Step 1: Ingest attack traffic
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "203.0.113.200",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 180000,
+  "byteCount": 11520000
+}
+
+### 8.5 Step 2: Check ML prediction
+POST {{baseUrl}}/api/v1/traffic/predict-attack
+Content-Type: application/json
+
+{
+  "sourceIp": "203.0.113.200",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 180000,
+  "byteCount": 11520000
+}
+
+### 8.6 Step 3: Wait 35 seconds, then check if auto-blocked
+# NOTE: Wait 35 seconds after Step 1 before running this
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/203.0.113.200
+Accept: application/json
+
+### 8.7 Step 4: Check security dashboard
+GET {{baseUrl}}/api/v1/security/dashboard
+Accept: application/json
+
+
+### 8.8 SCENARIO: Manual IP Management
+# Step 1: Block a test IP
+POST {{baseUrl}}/api/v1/mitigation/block/198.51.100.123?reason=Manual%20test
+Content-Type: application/json
+
+### 8.9 Step 2: Verify it's blocked
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/198.51.100.123
+Accept: application/json
+
+### 8.10 Step 3: Check blocked list
+GET {{baseUrl}}/api/v1/mitigation/blocked
+Accept: application/json
+
+### 8.11 Step 4: Unblock the IP
+POST {{baseUrl}}/api/v1/mitigation/unblock/198.51.100.123
+Content-Type: application/json
+
+### 8.12 Step 5: Verify it's unblocked
+GET {{baseUrl}}/api/v1/mitigation/is-blocked/198.51.100.123
+Accept: application/json
+
+
+###############################################################################
+# 9. BULK TESTING
+###############################################################################
+
+### 9.1 Ingest Multiple Normal IPs (Batch 1)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.1.20",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 600,
+  "byteCount": 38400
+}
+
+### 9.2 Ingest Multiple Normal IPs (Batch 2)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.1.21",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 750,
+  "byteCount": 48000
+}
+
+### 9.3 Ingest Multiple Attack IPs (Batch 1)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "203.0.113.50",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 130000,
+  "byteCount": 8320000
+}
+
+### 9.4 Ingest Multiple Attack IPs (Batch 2)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "203.0.113.51",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 145000,
+  "byteCount": 9280000
+}
+
+
+###############################################################################
+# 10. EDGE CASES & VALIDATION
+###############################################################################
+
+### 10.1 Test Invalid IP Format
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "999.999.999.999",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 100,
+  "byteCount": 6400
+}
+
+### 10.2 Test Negative Packet Count (Should fail validation)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.1.1",
+  "destinationIp": "10.0.0.1",
+  "packetCount": -100,
+  "byteCount": 6400
+}
+
+### 10.3 Test Zero Traffic (Edge case)
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "192.168.1.1",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 0,
+  "byteCount": 0
+}
+
+### 10.4 Test Very Large Packet Count
+POST {{baseUrl}}/api/v1/traffic/ingest
+Content-Type: application/json
+
+{
+  "sourceIp": "203.0.113.250",
+  "destinationIp": "10.0.0.1",
+  "packetCount": 999999999,
+  "byteCount": 999999999999
+}
+
+
+###############################################################################
+# 11. MONITORING & METRICS
+###############################################################################
+
+### 11.1 Get All Metrics
+GET {{baseUrl}}/actuator/metrics
+Accept: application/json
+
+### 11.2 Check JVM Memory
+GET {{baseUrl}}/actuator/metrics/jvm.memory.used
+Accept: application/json
+
+### 11.3 Check HTTP Requests Count
+GET {{baseUrl}}/actuator/metrics/http.server.requests
+Accept: application/json
+
+
+###############################################################################
+# TEST RESULTS EXPECTATIONS
+###############################################################################
+
+# ✅ NORMAL TRAFFIC (192.168.x.x, <10000 packets):
+#    - is_attack: false
+#    - confidence: <50%
+#    - severity: NORMAL or LOW
+#    - should_block: false
+#    - IP NOT auto-blocked
+
+# ⚠️ MEDIUM RISK (50000-100000 packets):
+#    - is_attack: true/false (depends on other features)
+#    - confidence: 40-70%
+#    - severity: MEDIUM
+#    - should_block: true/false
+#    - May or may not be auto-blocked
+
+# 🚨 HIGH RISK (>125000 packets):
+#    - is_attack: true
+#    - confidence: 70-100%
+#    - severity: HIGH or CRITICAL
+#    - should_block: true
+#    - IP auto-blocked within 30 seconds
+
+# 📊 AUTO-DETECTION:
+#    - Runs every 30 seconds
+#    - Checks last 60 seconds of traffic
+#    - Blocks IPs with confidence ≥50% OR anomaly score >100
+#    - Check logs: "Starting automatic attack detection"
+
+###############################################################################
+# END OF TEST SUITE
+###############################################################################

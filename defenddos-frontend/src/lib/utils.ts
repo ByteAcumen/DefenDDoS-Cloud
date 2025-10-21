@@ -134,6 +134,56 @@ export function generateId(length: number = 8): string {
   return result;
 }
 
+// Animation variants for Framer Motion
+export const fadeIn = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: 10,
+    transition: {
+      duration: 0.2,
+      ease: "easeIn"
+    }
+  }
+};
+
+export const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+export const slideIn = (direction: 'left' | 'right' | 'up' | 'down' = 'up', delay = 0) => ({
+  hidden: {
+    opacity: 0,
+    y: direction === 'up' ? 20 : direction === 'down' ? -20 : 0,
+    x: direction === 'left' ? 20 : direction === 'right' ? -20 : 0,
+  },
+  show: {
+    opacity: 1,
+    y: 0,
+    x: 0,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 25,
+      delay,
+    },
+  },
+});
+
 /**
  * Safe localStorage operations
  */

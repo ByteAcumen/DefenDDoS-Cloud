@@ -111,3 +111,10 @@ application-prod.properties
 *.swp
 *.swo
 *~
+
+# Large test data files (exceed GitHub 100MB limit)
+backend-service/test-data/*.csv
+backend-service/test-data/*.json
+
+# Attack simulation reports
+attack-simulation-report-*.json

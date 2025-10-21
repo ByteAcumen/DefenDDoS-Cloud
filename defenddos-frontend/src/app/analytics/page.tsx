@@ -57,29 +57,29 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 
-// Animation variants - Fast and smooth
+// Optimized animation variants - Smoother and faster
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.05,
-      duration: 0.3,
-      ease: [0.4, 0, 0.2, 1] as any
+      staggerChildren: 0.03,
+      delayChildren: 0,
+      duration: 0.2,
+      ease: [0.25, 0.1, 0.25, 1] as any
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  hidden: { opacity: 0, y: 8, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.3,
-      ease: [0.4, 0, 0.2, 1] as any
+      duration: 0.25,
+      ease: [0.25, 0.1, 0.25, 1] as any
     }
   }
 };
@@ -239,16 +239,28 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
+      {/* Enhanced Header Section with Animated Background */}
       <motion.div
-        className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5 rounded-xl md:rounded-2xl p-4 sm:p-6 md:p-8 border border-border/50 shadow-xl"
-        initial={{ opacity: 0, y: -12 }}
+        className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 rounded-2xl p-4 sm:p-6 md:p-8 border border-border/50 shadow-2xl"
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 bg-grid-white/[0.03] bg-[size:30px_30px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+        <motion.div 
+          className="absolute top-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{ 
+            duration: 10, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
 
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
           <div className="space-y-2 sm:space-y-3">
@@ -332,15 +344,20 @@ export default function AnalyticsPage() {
         </div>
       </motion.div>
 
-      {/* KPI Cards */}
+      {/* Enhanced KPI Cards with Gradient Backgrounds */}
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all duration-200">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ scale: 1.02, y: -3 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-2xl hover:border-red-500/50 transition-all duration-300 bg-gradient-to-br from-red-500/5 to-transparent">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl" />
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -349,7 +366,12 @@ export default function AnalyticsPage() {
                     {isLoading ? '...' : metrics.totalThreats.toLocaleString()}
                   </p>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-red-500" />
+                    <motion.div
+                      animate={{ rotate: [0, 5, 0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5 text-red-500" />
+                    </motion.div>
                     <span className="text-xs text-red-500 font-semibold">+12.5%</span>
                     <span className="text-xs text-muted-foreground">vs last period</span>
                   </div>
@@ -362,8 +384,13 @@ export default function AnalyticsPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all duration-200">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ scale: 1.02, y: -3 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-2xl hover:border-green-500/50 transition-all duration-300 bg-gradient-to-br from-green-500/5 to-transparent">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-2xl" />
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -372,7 +399,12 @@ export default function AnalyticsPage() {
                     {isLoading ? '...' : metrics.blockedCount.toLocaleString()}
                   </p>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                    <motion.div
+                      animate={{ rotate: [0, 5, 0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 0.2 }}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                    </motion.div>
                     <span className="text-xs text-green-500 font-semibold">+8.3%</span>
                     <span className="text-xs text-muted-foreground">effectiveness</span>
                   </div>
@@ -385,8 +417,13 @@ export default function AnalyticsPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all duration-200">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ scale: 1.02, y: -3 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-2xl hover:border-blue-500/50 transition-all duration-300 bg-gradient-to-br from-blue-500/5 to-transparent">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl" />
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -395,7 +432,12 @@ export default function AnalyticsPage() {
                     {isLoading ? '...' : `${metrics.avgResponseTime}ms`}
                   </p>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <TrendingDown className="w-3.5 h-3.5 text-green-500" />
+                    <motion.div
+                      animate={{ y: [0, -2, 0, 2, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 0.4 }}
+                    >
+                      <TrendingDown className="w-3.5 h-3.5 text-green-500" />
+                    </motion.div>
                     <span className="text-xs text-green-500 font-semibold">-3.2ms</span>
                     <span className="text-xs text-muted-foreground">improvement</span>
                   </div>
@@ -408,8 +450,13 @@ export default function AnalyticsPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all duration-200">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ scale: 1.02, y: -3 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card className="relative overflow-hidden border-border/50 shadow-lg hover:shadow-2xl hover:border-green-500/50 transition-all duration-300 bg-gradient-to-br from-green-500/5 to-transparent">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-2xl" />
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -418,7 +465,12 @@ export default function AnalyticsPage() {
                     {isLoading ? '...' : `${metrics.successRate.toFixed(1)}%`}
                   </p>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                    <motion.div
+                      animate={{ rotate: [0, 5, 0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                    </motion.div>
                     <span className="text-xs text-green-500 font-semibold">+1.8%</span>
                     <span className="text-xs text-muted-foreground">accuracy</span>
                   </div>
@@ -432,16 +484,21 @@ export default function AnalyticsPage() {
         </motion.div>
       </motion.div>
 
-      {/* Charts Row */}
+      {/* Enhanced Charts with Smooth Animations */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Traffic Timeline */}
-        <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card className="border-border/50 shadow-lg">
+        <motion.div 
+          variants={itemVariants}
+          className="lg:col-span-2"
+          whileHover={{ y: -2 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                 <div>
@@ -522,8 +579,12 @@ export default function AnalyticsPage() {
         </motion.div>
 
         {/* Threat Distribution */}
-        <motion.div variants={itemVariants}>
-          <Card className="border-border/50 shadow-lg">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -2 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
               <h3 className="text-base sm:text-lg font-semibold text-foreground">Threat Distribution</h3>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">Attack types detected</p>
@@ -583,9 +644,13 @@ export default function AnalyticsPage() {
         </motion.div>
       </motion.div>
 
-      {/* Detection Severity Timeline */}
-      <motion.div variants={itemVariants}>
-        <Card className="border-border/50 shadow-lg">
+      {/* Detection Severity Timeline with Enhanced Animation */}
+      <motion.div 
+        variants={itemVariants}
+        whileHover={{ y: -2 }}
+        transition={{ duration: 0.2 }}
+      >
+        <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <h3 className="text-base sm:text-lg font-semibold text-foreground">Detection Severity Timeline</h3>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">Threat severity distribution over time</p>
