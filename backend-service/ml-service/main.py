@@ -23,8 +23,28 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="DefenDDoS ML Service",
     description="Machine Learning service for DDoS attack detection using Random Forest and LSTM",
-    version="2.0.0"
+    version="3.0.0"
 )
+
+# Feature enhancement for new services
+class FingerprintFeaturesModel(BaseModel):
+    """Model for fingerprint-based predictions"""
+    composite_fingerprint: str
+    tls_fingerprint: str
+    http2_settings: str
+    tcp_window_size: int
+    device_type: str
+    user_agent: str
+
+class ForecastEnhancementModel(BaseModel):
+    """Model for enhancing forecast predictions with ML"""
+    current_traffic: int
+    baseline: int
+    ema_5min: Optional[float] = None
+    ema_15min: Optional[float] = None
+    ema_30min: Optional[float] = None
+    attack_probability: float
+    anomaly_score: float
 
 # Load selected features from configuration
 SELECTED_FEATURES_PATH = Path("models/selected_features.json")
@@ -525,6 +545,261 @@ async def model_info():
         "model_type": "Random Forest Classifier",
         "scaling": "StandardScaler" if ml_model.scaler_loaded else "None"
     }
+
+
+@app.post("/predict/fingerprint")
+async def predict_fingerprint(data: FingerprintFeaturesModel):
+    """
+    Analyze fingerprint using ML to detect bots and anomalies.
+    Returns bot probability, risk score, and recommendations.
+    """
+    try:
+        # Extract features for ML analysis
+        features = {
+            'tls_cipher_count': len(data.tls_fingerprint.split('-')) if data.tls_fingerprint else 0,
+            'http2_settings_count': len(data.http2_settings.split(',')) if data.http2_settings else 0,
+            'tcp_window_size': data.tcp_window_size,
+            'device_is_mobile': 1 if data.device_type == 'Mobile' else 0,
+            'has_user_agent': 1 if data.user_agent else 0,
+            'fingerprint_entropy': len(set(data.composite_fingerprint)) / max(len(data.composite_fingerprint), 1)
+        }
+        
+        # Simple heuristic bot detection (can be replaced with trained model)
+        bot_score = 0.0
+        risk_factors = []
+        
+        # Check for automation signatures
+        if 'headless' in data.user_agent.lower():
+            bot_score += 0.4
+            risk_factors.append("Headless browser detected")
+        
+        if any(tool in data.user_agent.lower() for tool in ['selenium', 'puppeteer', 'playwright', 'cypress']):
+            bot_score += 0.3
+            risk_factors.append("Automation tool detected")
+        
+        # Check TLS anomalies
+        if features['tls_cipher_count'] < 3:
+            bot_score += 0.15
+            risk_factors.append("Unusual TLS configuration")
+        
+        # Check TCP window size (bots often have default values)
+        if data.tcp_window_size in [65535, 8192, 16384]:
+            bot_score += 0.1
+            risk_factors.append("Default TCP window size")
+        
+        # Check fingerprint entropy (low entropy = suspicious)
+        if features['fingerprint_entropy'] < 0.3:
+            bot_score += 0.15
+            risk_factors.append("Low fingerprint entropy")
+        
+        bot_score = min(bot_score, 1.0)
+        
+        # Calculate risk level
+        if bot_score >= 0.7:
+            risk_level = "HIGH"
+            action = "BLOCK"
+        elif bot_score >= 0.4:
+            risk_level = "MEDIUM"
+            action = "CHALLENGE"
+        elif bot_score >= 0.2:
+            risk_level = "LOW"
+            action = "MONITOR"
+        else:
+            risk_level = "SAFE"
+            action = "ALLOW"
+        
+        return {
+            "bot_probability": round(bot_score, 3),
+            "risk_level": risk_level,
+            "recommended_action": action,
+            "risk_factors": risk_factors,
+            "device_type": data.device_type,
+            "fingerprint_hash": data.composite_fingerprint[:16] + "...",
+            "analysis": {
+                "tls_anomaly": features['tls_cipher_count'] < 5,
+                "tcp_anomaly": data.tcp_window_size in [65535, 8192, 16384],
+                "user_agent_suspicious": bot_score > 0.3,
+                "entropy_low": features['fingerprint_entropy'] < 0.3
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fingerprint analysis failed: {str(e)}")
+
+
+@app.post("/enhance/forecast")
+async def enhance_forecast(data: ForecastEnhancementModel):
+    """
+    Enhance forecast accuracy using ML-based pattern recognition.
+    Adjusts predictions based on historical patterns and anomalies.
+    """
+    try:
+        # Calculate traffic velocity and acceleration
+        traffic_velocity = data.current_traffic - data.baseline
+        traffic_acceleration = data.ema_5min - data.ema_15min if data.ema_5min and data.ema_15min else 0
+        
+        # Pattern recognition
+        is_spike = data.current_traffic > data.baseline * 2
+        is_sustained_growth = data.ema_5min > data.ema_15min > data.ema_30min if all([data.ema_5min, data.ema_15min, data.ema_30min]) else False
+        is_volatile = abs(traffic_velocity) > data.baseline * 0.5
+        
+        # Adjust attack probability using ML insights
+        ml_adjustment = 0.0
+        confidence_factors = []
+        
+        # Spike detection boost
+        if is_spike:
+            ml_adjustment += 0.15
+            confidence_factors.append("Traffic spike detected")
+        
+        # Sustained growth pattern
+        if is_sustained_growth:
+            ml_adjustment += 0.2
+            confidence_factors.append("Sustained growth pattern")
+        
+        # High volatility
+        if is_volatile:
+            ml_adjustment += 0.1
+            confidence_factors.append("High traffic volatility")
+        
+        # Anomaly score boost
+        if data.anomaly_score > 100:
+            ml_adjustment += min(data.anomaly_score / 500, 0.25)
+            confidence_factors.append(f"High anomaly score: {data.anomaly_score}")
+        
+        # Calculate enhanced probability
+        enhanced_probability = min(data.attack_probability + ml_adjustment, 1.0)
+        
+        # Determine confidence level
+        if len(confidence_factors) >= 3:
+            confidence = "HIGH"
+        elif len(confidence_factors) >= 2:
+            confidence = "MEDIUM"
+        else:
+            confidence = "LOW"
+        
+        # Generate recommended timeframe for next check
+        if enhanced_probability > 0.8:
+            recommended_interval = "1min"
+        elif enhanced_probability > 0.5:
+            recommended_interval = "5min"
+        else:
+            recommended_interval = "15min"
+        
+        return {
+            "enhanced_probability": round(enhanced_probability, 3),
+            "original_probability": round(data.attack_probability, 3),
+            "ml_adjustment": round(ml_adjustment, 3),
+            "confidence": confidence,
+            "confidence_factors": confidence_factors,
+            "recommended_interval": recommended_interval,
+            "pattern_analysis": {
+                "spike_detected": is_spike,
+                "sustained_growth": is_sustained_growth,
+                "high_volatility": is_volatile,
+                "traffic_velocity": traffic_velocity,
+                "traffic_acceleration": round(traffic_acceleration, 2)
+            },
+            "metrics": {
+                "current_traffic": data.current_traffic,
+                "baseline": data.baseline,
+                "deviation_percent": round((traffic_velocity / max(data.baseline, 1)) * 100, 2)
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forecast enhancement failed: {str(e)}")
+
+
+@app.post("/analyze/pattern")
+async def analyze_attack_pattern(request: TrafficFeatures):
+    """
+    Analyze attack patterns using ML to identify attack types and techniques.
+    Provides detailed classification and mitigation recommendations.
+    """
+    try:
+        # Use existing prediction logic
+        result = await predict(request)
+        
+        # Extract attack characteristics
+        attack_type = result['attack_type']
+        confidence = result['confidence']
+        severity = result['severity']
+        
+        # Pattern-based analysis
+        patterns_detected = []
+        mitigation_strategies = []
+        
+        # Analyze based on attack type
+        if attack_type == "DDoS":
+            patterns_detected.append("Volumetric attack pattern")
+            mitigation_strategies.extend([
+                "Enable rate limiting",
+                "Activate geo-blocking for suspicious regions",
+                "Scale infrastructure horizontally"
+            ])
+        elif attack_type == "PortScan":
+            patterns_detected.append("Reconnaissance activity")
+            mitigation_strategies.extend([
+                "Block scanning IP immediately",
+                "Enable port knocking",
+                "Reduce service exposure"
+            ])
+        elif attack_type in ["DoS Hulk", "DoS Slowloris", "DoS SlowHTTPTest", "DoS GoldenEye"]:
+            patterns_detected.append("Application-layer exhaustion")
+            mitigation_strategies.extend([
+                "Implement connection limits",
+                "Enable request timeout",
+                "Deploy WAF rules"
+            ])
+        elif attack_type == "Botnet":
+            patterns_detected.append("Coordinated bot activity")
+            mitigation_strategies.extend([
+                "Enable CAPTCHA challenges",
+                "Implement device fingerprinting",
+                "Block bot user-agents"
+            ])
+        
+        # Additional pattern detection based on packet analysis
+        packet_count = request.flow_packets_s
+        if packet_count > 50000:
+            patterns_detected.append("High packet rate attack")
+            mitigation_strategies.append("Deploy packet filtering")
+        
+        # Threat intelligence correlation
+        threat_indicators = {
+            "high_packet_rate": packet_count > 20000,
+            "abnormal_protocol": request.protocol not in [6, 17],  # TCP/UDP
+            "suspicious_port": request.dst_port in [22, 23, 3389, 5900],  # SSH, Telnet, RDP, VNC
+            "payload_anomaly": severity in ["CRITICAL", "HIGH"]
+        }
+        
+        active_indicators = [k for k, v in threat_indicators.items() if v]
+        
+        return {
+            "attack_type": attack_type,
+            "confidence": confidence,
+            "severity": severity,
+            "patterns_detected": patterns_detected,
+            "mitigation_strategies": mitigation_strategies,
+            "threat_indicators": active_indicators,
+            "threat_score": len(active_indicators) * 25,  # 0-100 scale
+            "analysis": {
+                "packet_rate": packet_count,
+                "protocol": "TCP" if request.protocol == 6 else "UDP" if request.protocol == 17 else "Other",
+                "destination_port": request.dst_port,
+                "lstm_anomaly_score": result.get('lstm_score'),
+                "prediction_timestamp": result['timestamp']
+            },
+            "recommendations": {
+                "immediate_action": "BLOCK" if severity in ["CRITICAL", "HIGH"] else "MONITOR",
+                "investigation_priority": "P1" if severity == "CRITICAL" else "P2" if severity == "HIGH" else "P3",
+                "estimated_impact": "HIGH" if confidence > 0.8 else "MEDIUM" if confidence > 0.5 else "LOW"
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Pattern analysis failed: {str(e)}")
 
 
 if __name__ == "__main__":

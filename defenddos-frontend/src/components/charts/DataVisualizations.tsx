@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   LineChart,
@@ -98,7 +98,7 @@ const getDarkColors = () => ({
 });
 
 // Enhanced Custom Tooltip with better formatting and theming
-const CustomTooltip = ({ active, payload, label, labelFormatter }: any) => {
+const CustomTooltip = React.memo(({ active, payload, label, labelFormatter }: any) => {
   const { resolvedTheme } = useTheme();
   const colors = resolvedTheme === 'light' ? getLightColors() : getDarkColors();
   
@@ -137,10 +137,12 @@ const CustomTooltip = ({ active, payload, label, labelFormatter }: any) => {
     );
   }
   return null;
-};
+});
+
+CustomTooltip.displayName = 'CustomTooltip';
 
 // Enhanced Traffic Timeline Chart with better theming and data details
-export const TrafficTimelineChart: React.FC<ChartProps> = ({
+export const TrafficTimelineChart: React.FC<ChartProps> = React.memo(({
   data,
   loading = false,
   title = 'Traffic Timeline',
@@ -156,6 +158,73 @@ export const TrafficTimelineChart: React.FC<ChartProps> = ({
   // Memoize processed data to prevent recalculation on every render
   const chartData = useMemo(() => data || [], [data]);
   const hasData = chartData.length > 0;
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={className}
+      >
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary-500" />
+                {title}
+              </h3>
+              <Badge variant="outline" size="sm">
+                Loading...
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
+              <div className="text-center">
+                <Activity className="w-12 h-12 mx-auto mb-3 text-primary-500 animate-pulse" />
+                <p className="text-sm text-muted-foreground">Loading traffic data...</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={className}
+      >
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary-500" />
+                {title}
+              </h3>
+              <Badge variant="outline" size="sm">
+                No data
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
+              <div className="text-center">
+                <Activity className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
+                <p className="text-sm text-muted-foreground">No traffic data available</p>
+                <p className="text-xs text-muted-foreground mt-1">Data will appear once traffic is ingested</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -177,121 +246,108 @@ export const TrafficTimelineChart: React.FC<ChartProps> = ({
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
-              <div className="text-center">
-                <Activity className="w-12 h-12 mx-auto mb-3 text-primary-500 animate-pulse" />
-                <p className="text-sm text-muted-foreground">Loading traffic data...</p>
-              </div>
-            </div>
-          ) : !hasData ? (
-            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
-              <div className="text-center">
-                <Activity className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
-                <p className="text-sm text-muted-foreground">No traffic data available</p>
-                <p className="text-xs text-muted-foreground mt-1">Data will appear once traffic is ingested</p>
-              </div>
-            </div>
-          ) : (
-          <ResponsiveContainer width="100%" height={height}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              {showGrid && (
-                <CartesianGrid 
-                  strokeDasharray="3 3" 
-                  stroke={colors.border}
-                  opacity={0.3}
+          <div className="w-full" style={{ height: `${height}px` }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                {showGrid && (
+                  <CartesianGrid 
+                    strokeDasharray="3 3" 
+                    stroke={colors.border}
+                    opacity={0.3}
+                  />
+                )}
+                <XAxis 
+                  dataKey="time"
+                  tick={{ fontSize: 12, fill: colors.foreground }}
+                  tickLine={{ stroke: colors.border }}
+                  axisLine={{ stroke: colors.border }}
                 />
-              )}
-              <XAxis 
-                dataKey="time"
-                tick={{ fontSize: 12, fill: colors.foreground }}
-                tickLine={{ stroke: colors.border }}
-                axisLine={{ stroke: colors.border }}
-              />
-              <YAxis 
-                tick={{ fontSize: 12, fill: colors.foreground }}
-                tickLine={{ stroke: colors.border }}
-                axisLine={{ stroke: colors.border }}
-                tickFormatter={(value) => {
-                  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-                  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-                  return value.toString();
-                }}
-              />
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
-                tick={{ fontSize: 12, fill: colors.foreground }}
-                tickLine={{ stroke: colors.border }}
-                axisLine={{ stroke: colors.border }}
-                tickFormatter={(value) => {
-                  if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}GB`;
-                  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}MB`;
-                  if (value >= 1000) return `${(value / 1000).toFixed(1)}KB`;
-                  return `${value}B`;
-                }}
-              />
-              <Tooltip 
-                content={<CustomTooltip />}
-                labelFormatter={(label) => `Time: ${label}`}
-              />
-              {showLegend && <Legend wrapperStyle={{ color: colors.foreground }} />}
-              
-              <defs>
-                <linearGradient id="packetsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={colors.primary} stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor={colors.primary} stopOpacity={0.1}/>
-                </linearGradient>
-                <linearGradient id="bytesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={colors.success} stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor={colors.success} stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
+                <YAxis 
+                  tick={{ fontSize: 12, fill: colors.foreground }}
+                  tickLine={{ stroke: colors.border }}
+                  axisLine={{ stroke: colors.border }}
+                  tickFormatter={(value) => {
+                    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+                    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+                    return value.toString();
+                  }}
+                />
+                <YAxis 
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 12, fill: colors.foreground }}
+                  tickLine={{ stroke: colors.border }}
+                  axisLine={{ stroke: colors.border }}
+                  tickFormatter={(value) => {
+                    if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}GB`;
+                    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}MB`;
+                    if (value >= 1000) return `${(value / 1000).toFixed(1)}KB`;
+                    return `${value}B`;
+                  }}
+                />
+                <Tooltip 
+                  content={<CustomTooltip />}
+                  labelFormatter={(label) => `Time: ${label}`}
+                />
+                {showLegend && <Legend wrapperStyle={{ color: colors.foreground }} />}
+                
+                <defs>
+                  <linearGradient id="packetsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.primary} stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor={colors.primary} stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="bytesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.success} stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor={colors.success} stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
 
-              <Area
-                type="monotone"
-                dataKey="packets"
-                stroke={colors.primary}
-                fillOpacity={1}
-                fill="url(#packetsGradient)"
-                name="Packets/sec"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ 
-                  r: 6, 
-                  fill: colors.primary,
-                  stroke: colors.background,
-                  strokeWidth: 2
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="bytes"
-                stroke={colors.success}
-                fillOpacity={1}
-                fill="url(#bytesGradient)"
-                name="Bytes/sec"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ 
-                  r: 6, 
-                  fill: colors.success,
-                  stroke: colors.background,
-                  strokeWidth: 2
-                }}
-                yAxisId="right"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-          )}
+                <Area
+                  type="monotone"
+                  dataKey="packets"
+                  stroke={colors.primary}
+                  fillOpacity={1}
+                  fill="url(#packetsGradient)"
+                  name="Packets/sec"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ 
+                    r: 5, 
+                    fill: colors.primary,
+                    stroke: colors.background,
+                    strokeWidth: 2
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="bytes"
+                  stroke={colors.success}
+                  fillOpacity={1}
+                  fill="url(#bytesGradient)"
+                  name="Bytes/sec"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ 
+                    r: 5, 
+                    fill: colors.success,
+                    stroke: colors.background,
+                    strokeWidth: 2
+                  }}
+                  yAxisId="right"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
   );
-};
+});
+
+TrafficTimelineChart.displayName = 'TrafficTimelineChart';
 
 // Enhanced Attack Detection Chart with severity levels and better data details
-export const AttackDetectionChart: React.FC<ChartProps> = ({
+export const AttackDetectionChart: React.FC<ChartProps> = React.memo(({
   data,
   loading = false,
   title = 'Attack Detection Timeline',
@@ -317,15 +373,50 @@ export const AttackDetectionChart: React.FC<ChartProps> = ({
   }
 
   // Process data to include severity levels
-  const processedData = data && data.length > 0 ? data.map(item => ({
-    ...item,
-    critical: (item.severity === 'CRITICAL' || item.critical > 0) ? (item.critical || item.attacks || 1) : 0,
-    high: (item.severity === 'HIGH' || item.high > 0) ? (item.high || item.attacks || 1) : 0,
-    medium: (item.severity === 'MEDIUM' || item.medium > 0) ? (item.medium || item.attacks || 1) : 0,
-    low: (item.severity === 'LOW' || item.low > 0) ? (item.low || item.attacks || 1) : 0,
-  })) : [];
+  const processedData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
+    return data.map(item => ({
+      ...item,
+      critical: (item.severity === 'CRITICAL' || item.critical > 0) ? (item.critical || item.attacks || 1) : 0,
+      high: (item.severity === 'HIGH' || item.high > 0) ? (item.high || item.attacks || 1) : 0,
+      medium: (item.severity === 'MEDIUM' || item.medium > 0) ? (item.medium || item.attacks || 1) : 0,
+      low: (item.severity === 'LOW' || item.low > 0) ? (item.low || item.attacks || 1) : 0,
+    }));
+  }, [data]);
 
   const hasData = processedData.length > 0;
+
+  if (!hasData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, type: "spring", bounce: 0.1 }}
+        className={className}
+      >
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" style={{ color: colors.danger }} />
+                {title}
+              </h3>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
+              <div className="text-center">
+                <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
+                <p className="text-sm text-muted-foreground">No attack detection events</p>
+                <p className="text-xs text-muted-foreground mt-1">System is actively monitoring</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -362,76 +453,70 @@ export const AttackDetectionChart: React.FC<ChartProps> = ({
           </div>
         </CardHeader>
         <CardContent>
-          {!hasData ? (
-            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
-              <div className="text-center">
-                <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
-                <p className="text-sm text-muted-foreground">No attack detection events</p>
-                <p className="text-xs text-muted-foreground mt-1">System is actively monitoring</p>
-              </div>
-            </div>
-          ) : (
-          <ResponsiveContainer width="100%" height={height}>
-            <BarChart data={processedData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke={colors.border} 
-                opacity={0.3} 
-              />
-              <XAxis 
-                dataKey="time" 
-                tick={{ fontSize: 12, fill: colors.foreground }}
-                tickLine={{ stroke: colors.border }}
-                axisLine={{ stroke: colors.border }}
-              />
-              <YAxis 
-                tick={{ fontSize: 12, fill: colors.foreground }}
-                tickLine={{ stroke: colors.border }}
-                axisLine={{ stroke: colors.border }}
-              />
-              <Tooltip 
-                content={<CustomTooltip />}
-                labelFormatter={(label) => `Time: ${label}`}
-              />
-              <Bar 
-                dataKey="critical" 
-                stackId="severity"
-                fill={colors.danger}
-                radius={[0, 0, 0, 0]}
-                name="Critical Attacks"
-              />
-              <Bar 
-                dataKey="high" 
-                stackId="severity"
-                fill={colors.warning}
-                radius={[0, 0, 0, 0]}
-                name="High Severity"
-              />
-              <Bar 
-                dataKey="medium" 
-                stackId="severity"
-                fill={colors.info}
-                radius={[0, 0, 0, 0]}
-                name="Medium Severity"
-              />
-              <Bar 
-                dataKey="low" 
-                stackId="severity"
-                fill={colors.success}
-                radius={[4, 4, 0, 0]}
-                name="Low Severity"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-          )}
+          <div className="w-full" style={{ height: `${height}px` }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={processedData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke={colors.border} 
+                  opacity={0.3} 
+                />
+                <XAxis 
+                  dataKey="time" 
+                  tick={{ fontSize: 12, fill: colors.foreground }}
+                  tickLine={{ stroke: colors.border }}
+                  axisLine={{ stroke: colors.border }}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12, fill: colors.foreground }}
+                  tickLine={{ stroke: colors.border }}
+                  axisLine={{ stroke: colors.border }}
+                />
+                <Tooltip 
+                  content={<CustomTooltip />}
+                  labelFormatter={(label) => `Time: ${label}`}
+                />
+                <Bar 
+                  dataKey="critical" 
+                  stackId="severity"
+                  fill={colors.danger}
+                  radius={[0, 0, 0, 0]}
+                  name="Critical Attacks"
+                />
+                <Bar 
+                  dataKey="high" 
+                  stackId="severity"
+                  fill={colors.warning}
+                  radius={[0, 0, 0, 0]}
+                  name="High Severity"
+                />
+                <Bar 
+                  dataKey="medium" 
+                  stackId="severity"
+                  fill={colors.info}
+                  radius={[0, 0, 0, 0]}
+                  name="Medium Severity"
+                />
+                <Bar 
+                  dataKey="low" 
+                  stackId="severity"
+                  fill={colors.success}
+                  radius={[4, 4, 0, 0]}
+                  name="Low Severity"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
   );
-};
+});
+
+AttackDetectionChart.displayName = 'AttackDetectionChart';
 
 // ML Confidence Chart
-export const MLConfidenceChart: React.FC<ChartProps> = ({
+export const MLConfidenceChart: React.FC<ChartProps> = React.memo(({
   data,
   loading = false,
   title = 'ML Model Performance',
@@ -456,6 +541,34 @@ export const MLConfidenceChart: React.FC<ChartProps> = ({
 
   const hasData = data && data.length > 0;
 
+  if (!hasData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className={className}
+      >
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-semibold">
+              {title}
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
+              <div className="text-center">
+                <Activity className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
+                <p className="text-sm text-muted-foreground">No ML predictions yet</p>
+                <p className="text-xs text-muted-foreground mt-1">ML models ready to analyze traffic</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -470,61 +583,55 @@ export const MLConfidenceChart: React.FC<ChartProps> = ({
           </h3>
         </CardHeader>
         <CardContent>
-          {!hasData ? (
-            <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
-              <div className="text-center">
-                <Activity className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
-                <p className="text-sm text-muted-foreground">No ML predictions yet</p>
-                <p className="text-xs text-muted-foreground mt-1">ML models ready to analyze traffic</p>
-              </div>
-            </div>
-          ) : (
-          <ResponsiveContainer width="100%" height={height}>
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-              <YAxis 
-                domain={[0, 1]} 
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
-              />
-              <Tooltip 
-                formatter={(value: any) => [`${(value * 100).toFixed(1)}%`, 'Confidence']}
-                labelFormatter={(label) => `Time: ${label}`}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="confidence" 
-                stroke={colors.primary}
-                strokeWidth={3}
-                dot={{ fill: colors.primary, strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              {data.some(d => d.anomaly) && (
+          <div className="w-full" style={{ height: `${height}px` }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+                <YAxis 
+                  domain={[0, 1]} 
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+                />
+                <Tooltip 
+                  formatter={(value: any) => [`${(value * 100).toFixed(1)}%`, 'Confidence']}
+                  labelFormatter={(label) => `Time: ${label}`}
+                />
                 <Line 
                   type="monotone" 
-                  dataKey="anomaly" 
-                  stroke={colors.warning}
+                  dataKey="confidence" 
+                  stroke={colors.primary}
                   strokeWidth={2}
-                  dot={false}
-                  strokeDasharray="5 5"
+                  dot={{ fill: colors.primary, strokeWidth: 2, r: 3 }}
+                  activeDot={{ r: 5 }}
                 />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
-          )}
+                {data.some(d => d.anomaly) && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="anomaly" 
+                    stroke={colors.warning}
+                    strokeWidth={2}
+                    dot={false}
+                    strokeDasharray="5 5"
+                  />
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
   );
-};
+});
+
+MLConfidenceChart.displayName = 'MLConfidenceChart';
 
 // Threat Distribution Pie Chart
 export const ThreatDistributionChart: React.FC<{
   data: Array<{ name: string; value: number; }>;
   loading?: boolean;
   className?: string;
-}> = ({ data, loading = false, className }) => {
+}> = React.memo(({ data, loading = false, className }) => {
   const { resolvedTheme } = useTheme();
   const colors = resolvedTheme === 'light' ? getLightColors() : getDarkColors();
   
@@ -542,6 +649,35 @@ export const ThreatDistributionChart: React.FC<{
 
   const hasData = data && data.length > 0 && data.some(d => d.value > 0);
 
+  if (!hasData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, rotate: -10 }}
+        animate={{ opacity: 1, rotate: 0 }}
+        transition={{ duration: 0.6 }}
+        className={className}
+      >
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary-500" />
+              Threat Distribution
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-[300px]">
+              <div className="text-center">
+                <Shield className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
+                <p className="text-sm text-muted-foreground">No threat data available</p>
+                <p className="text-xs text-muted-foreground mt-1">System is monitoring for threats</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, rotate: -10 }}
@@ -557,44 +693,38 @@ export const ThreatDistributionChart: React.FC<{
           </h3>
         </CardHeader>
         <CardContent>
-          {!hasData ? (
-            <div className="flex items-center justify-center h-[300px]">
-              <div className="text-center">
-                <Shield className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
-                <p className="text-sm text-muted-foreground">No threat data available</p>
-                <p className="text-xs text-muted-foreground mt-1">System is monitoring for threats</p>
-              </div>
-            </div>
-          ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(entry: any) => `${entry.name}: ${(entry.percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={colors.gradient[index % colors.gradient.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-          )}
+          <div className="w-full" style={{ height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(entry: any) => `${entry.name}: ${(entry.percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {data.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={colors.gradient[index % colors.gradient.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
   );
-};
+});
+
+ThreatDistributionChart.displayName = 'ThreatDistributionChart';
 
 // Metric Card with Mini Chart
-export const MetricCard: React.FC<MetricCardProps> = ({
+export const MetricCard: React.FC<MetricCardProps> = React.memo(({
   title,
   value,
   change,
@@ -722,7 +852,9 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </Card>
     </motion.div>
   );
-};
+});
+
+MetricCard.displayName = 'MetricCard';
 
 // Real-time Activity Feed
 export const ActivityFeed: React.FC<{
@@ -734,7 +866,7 @@ export const ActivityFeed: React.FC<{
     details?: string;
   }>;
   className?: string;
-}> = ({ events, className }) => {
+}> = React.memo(({ events, className }) => {
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'error': return <AlertTriangle className="w-4 h-4 text-red-500" />;
@@ -746,13 +878,13 @@ export const ActivityFeed: React.FC<{
 
   const hasEvents = events && events.length > 0;
 
-  return (
-    <Card className={className}>
-      <CardHeader>
-        <h3 className="text-lg font-semibold">Recent Activity</h3>
-      </CardHeader>
-      <CardContent className="max-h-96 overflow-y-auto">
-        {!hasEvents ? (
+  if (!hasEvents) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <h3 className="text-lg font-semibold">Recent Activity</h3>
+        </CardHeader>
+        <CardContent className="max-h-96 overflow-y-auto">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Activity className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-30" />
@@ -760,7 +892,17 @@ export const ActivityFeed: React.FC<{
               <p className="text-xs text-muted-foreground mt-1">Events will appear here as they occur</p>
             </div>
           </div>
-        ) : (
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <h3 className="text-lg font-semibold">Recent Activity</h3>
+      </CardHeader>
+      <CardContent className="max-h-96 overflow-y-auto">
         <div className="space-y-3">
           {events.map((event) => (
             <motion.div
@@ -794,8 +936,9 @@ export const ActivityFeed: React.FC<{
             </motion.div>
           ))}
         </div>
-        )}
       </CardContent>
     </Card>
   );
-};
+});
+
+ActivityFeed.displayName = 'ActivityFeed';

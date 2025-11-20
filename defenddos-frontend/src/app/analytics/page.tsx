@@ -294,6 +294,9 @@ export default function AnalyticsPage() {
               <option value="-24h">Last 24 hours</option>
               <option value="-7d">Last 7 days</option>
               <option value="-30d">Last 30 days</option>
+              <option value="-90d">Last 3 months</option>
+              <option value="-180d">Last 6 months</option>
+              <option value="-365d">Last year</option>
             </select>
 
             {/* Action Buttons */}
