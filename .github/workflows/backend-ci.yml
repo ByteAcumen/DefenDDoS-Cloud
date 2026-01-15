@@ -31,10 +31,14 @@ jobs:
         cache-dependency-path: 'backend-service/pom.xml'
 
     - name: Run Tests
-      run: ./mvnw test
+      run: |
+        chmod +x mvnw
+        ./mvnw test
 
     - name: Build JAR
-      run: ./mvnw package -DskipTests
+      run: |
+        chmod +x mvnw
+        ./mvnw package -DskipTests
 
     - name: Upload JAR Artifact
       uses: actions/upload-artifact@v4
