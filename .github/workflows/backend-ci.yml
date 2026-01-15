@@ -2,11 +2,11 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
     paths:
       - 'backend-service/**'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
     paths:
       - 'backend-service/**'
   workflow_dispatch:
