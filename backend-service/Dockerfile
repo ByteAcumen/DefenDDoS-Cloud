@@ -1,22 +1,19 @@
-# Use official OpenJDK 21 slim image for smaller size and security
-FROM openjdk:21-slim
+# Use Eclipse Temurin JDK 21 (official OpenJDK distribution)
+FROM eclipse-temurin:21-jdk-alpine
 
 # Set metadata
 LABEL maintainer="DefenDDoS Team"
 LABEL description="DefenDDoS Backend Service - DDoS Detection and Mitigation Platform"
 LABEL version="1.0.0"
 
-# Install iptables and other required utilities
-RUN apt-get update && \
-    apt-get install -y iptables curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install iptables and other required utilities (using apk for Alpine)
+RUN apk add --no-cache iptables curl
 
 # Create application directory
 WORKDIR /app
 
-# Create non-root user for security
-RUN groupadd -r defenddos && useradd -r -g defenddos defenddos
+# Create non-root user for security (Alpine syntax)
+RUN addgroup -S defenddos && adduser -S defenddos -G defenddos
 
 # Copy the executable JAR file to the container
 COPY target/backend-service-*.jar app.jar

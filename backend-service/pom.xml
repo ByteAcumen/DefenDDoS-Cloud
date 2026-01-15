@@ -191,19 +191,7 @@
             <version>4.10.3</version>
         </dependency>
 
-        <!-- IPFS Java Client for Decentralized Storage -->
-        <dependency>
-            <groupId>io.ipfs</groupId>
-            <artifactId>java-ipfs-http-client</artifactId>
-            <version>1.4.4</version>
-        </dependency>
-
-        <!-- User-Agent Parser for Device Fingerprinting -->
-        <dependency>
-            <groupId>ua_parser</groupId>
-            <artifactId>ua-parser</artifactId>
-            <version>1.5.4</version>
-        </dependency>
+        <!-- IPFS and UA Parser dependencies removed - not available in Maven Central -->
 
         <!-- Bouncy Castle for TLS Fingerprinting -->
         <dependency>
