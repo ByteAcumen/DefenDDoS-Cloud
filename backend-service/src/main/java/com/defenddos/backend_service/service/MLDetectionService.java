@@ -22,7 +22,7 @@ import java.time.Duration;
 public class MLDetectionService {
 
     private static final Logger logger = LoggerFactory.getLogger(MLDetectionService.class);
-    
+
     private final WebClient mlServiceWebClient;
     private final DefenDDoSProperties properties;
     private final MitigationService mitigationService;
@@ -42,11 +42,17 @@ public class MLDetectionService {
      * @param enrichedTraffic Enriched traffic data with 30 features
      * @return ML prediction response or null if service is disabled/unavailable
      */
-    public MLPredictionResponse predict(EnrichedTrafficPoint enrichedTraffic) {
+    /**
+     * Predicts if traffic is a DDoS attack using ML model.
+     * 
+     * @param enrichedTraffic Enriched traffic data with 30 features
+     * @return Mono<MLPredictionResponse> or empty if disabled/error
+     */
+    public Mono<MLPredictionResponse> predict(EnrichedTrafficPoint enrichedTraffic) {
         // Check if ML service is enabled
         if (!properties.getMlService().isEnabled()) {
             logger.debug("ML service is disabled, skipping prediction");
-            return null;
+            return Mono.empty();
         }
 
         try {
@@ -54,46 +60,44 @@ public class MLDetectionService {
             MLPredictionRequest request = buildMLRequest(enrichedTraffic);
 
             // Call ML service with retry logic
-            MLPredictionResponse response = mlServiceWebClient.post()
+            return mlServiceWebClient.post()
                     .uri("/predict")
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(MLPredictionResponse.class)
                     .retryWhen(Retry.fixedDelay(
                             properties.getMlService().getRetryAttempts(),
-                            Duration.ofSeconds(1)
-                    ).filter(throwable -> throwable instanceof WebClientResponseException))
+                            Duration.ofSeconds(1)).filter(throwable -> throwable instanceof WebClientResponseException))
                     .timeout(Duration.ofSeconds(properties.getMlService().getTimeoutSeconds()))
+                    .doOnNext(response -> {
+                        if (response != null && response.getIsAttack()) {
+                            logger.info(
+                                    "ML Detection: Attack detected from {} - Type: {}, Confidence: {}, Severity: {}",
+                                    enrichedTraffic.getSourceIp(),
+                                    response.getAttackType(),
+                                    response.getConfidence(),
+                                    response.getSeverity());
+
+                            // Trigger mitigation if high-confidence attack
+                            if (response.shouldTriggerMitigation()) {
+                                mitigationService.blockIp(
+                                        enrichedTraffic.getSourceIp(),
+                                        "ML-detected " + response.getAttackType() +
+                                                " attack (confidence: "
+                                                + String.format("%.2f", response.getConfidence()) + ")");
+                            }
+                        }
+                    })
                     .onErrorResume(throwable -> {
-                        logger.error("ML service error for IP {}: {}", 
+                        logger.error("ML service error for IP {}: {}",
                                 enrichedTraffic.getSourceIp(), throwable.getMessage());
                         return Mono.empty();
-                    })
-                    .block();
-
-            if (response != null && response.getIsAttack()) {
-                logger.info("ML Detection: Attack detected from {} - Type: {}, Confidence: {}, Severity: {}",
-                        enrichedTraffic.getSourceIp(),
-                        response.getAttackType(),
-                        response.getConfidence(),
-                        response.getSeverity());
-
-                // Trigger mitigation if high-confidence attack
-                if (response.shouldTriggerMitigation()) {
-                    mitigationService.blockIp(
-                            enrichedTraffic.getSourceIp(),
-                            "ML-detected " + response.getAttackType() + 
-                            " attack (confidence: " + String.format("%.2f", response.getConfidence()) + ")"
-                    );
-                }
-            }
-
-            return response;
+                    });
 
         } catch (Exception e) {
-            logger.error("Unexpected error during ML prediction for IP {}: {}", 
+            logger.error("Unexpected error during ML prediction for IP {}: {}",
                     enrichedTraffic.getSourceIp(), e.getMessage(), e);
-            return null;
+            return Mono.empty();
         }
     }
 
@@ -156,7 +160,7 @@ public class MLDetectionService {
                     .bodyToMono(String.class)
                     .timeout(Duration.ofSeconds(5))
                     .block();
-            
+
             return response != null && response.contains("healthy");
         } catch (Exception e) {
             logger.warn("ML service health check failed: {}", e.getMessage());

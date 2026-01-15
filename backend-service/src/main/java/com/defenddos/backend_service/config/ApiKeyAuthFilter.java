@@ -29,27 +29,31 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Skip auth for public endpoints (Swagger, Health, etc.) -> Handled by
-        // SecurityConfig Matchers
-        // But we can also check here if we want strictly filter-based logic.
-        // For now, we rely on SecurityConfig to insert this filter in the chain.
+        String path = request.getRequestURI();
+
+        // Skip check for public endpoints or non-api paths
+        if (!path.startsWith("/api/") || path.startsWith("/api/v1/public/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String requestApiKey = request.getHeader("X-API-KEY");
 
-        if (requestApiKey != null && !requestApiKey.isEmpty()) {
-            if (validApiKey.equals(requestApiKey)) {
-                // Create an Authentication object and set it in the SecurityContext
-                Authentication authentication = new UsernamePasswordAuthenticationToken("api-user", null,
-                        java.util.Collections.emptyList()); // Changed to fully qualified name
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                // Invalid Key logic - or simply do nothing and let downstream (SecurityConfig)
-                // handle permitAll vs authenticated
-                // If we want to strictly fail here for requests sending BAD keys:
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.getWriter().write("Invalid API Key");
-                return;
-            }
+        if (requestApiKey == null || requestApiKey.isEmpty()) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("Missing API Key");
+            return;
+        }
+
+        if (validApiKey.equals(requestApiKey)) {
+            // Create an Authentication object and set it in the SecurityContext
+            Authentication authentication = new UsernamePasswordAuthenticationToken("api-user", null,
+                    java.util.Collections.emptyList());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("Invalid API Key");
+            return;
         }
 
         filterChain.doFilter(request, response);
