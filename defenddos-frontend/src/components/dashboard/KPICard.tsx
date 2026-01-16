@@ -78,7 +78,7 @@ export function KPICard({
 
   const formatValue = (val: number | string) => {
     if (typeof val === 'string') return val;
-    
+
     switch (format) {
       case 'percentage':
         return `${val.toFixed(1)}%`;
@@ -101,12 +101,12 @@ export function KPICard({
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' }
+      transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const }
     },
-    hover: { 
+    hover: {
       y: -4,
       transition: { duration: 0.2 }
     }
@@ -138,11 +138,16 @@ export function KPICard({
       className={className}
       {...props}
     >
-      <Card 
+      <Card
         className={cn(
-          'border-l-4 relative overflow-hidden',
-          severity ? severityColors[severity] : 'border-l-primary-500',
-          severity === 'critical' && 'animate-pulse-glow'
+          'border-l-4 relative overflow-hidden backdrop-blur-sm',
+          'bg-white/80 dark:bg-slate-800/50',
+          'border border-slate-200/50 dark:border-slate-700/50',
+          'shadow-lg shadow-slate-200/20 dark:shadow-slate-900/30',
+          'hover:shadow-xl hover:shadow-cyan-500/10 dark:hover:shadow-cyan-500/5',
+          'hover:border-slate-300 dark:hover:border-slate-600',
+          severity ? severityColors[severity] : 'border-l-cyan-500',
+          severity === 'critical' && 'animate-pulse-glow ring-2 ring-red-500/20'
         )}
         hover={animated}
       >
@@ -153,12 +158,12 @@ export function KPICard({
               {title}
             </h3>
             {icon && (
-              <motion.div 
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
-                whileHover={animated ? { rotate: 5 } : undefined}
+              <motion.div
+                className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 dark:from-cyan-500/20 dark:to-blue-500/20 border border-cyan-500/20"
+                whileHover={animated ? { rotate: 5, scale: 1.05 } : undefined}
                 transition={{ duration: 0.2 }}
               >
-                <div className="w-6 h-6 text-gray-600 dark:text-gray-400">
+                <div className="w-6 h-6 text-cyan-600 dark:text-cyan-400">
                   {icon}
                 </div>
               </motion.div>
@@ -167,7 +172,7 @@ export function KPICard({
 
           {/* Main Value */}
           <div className="mb-4">
-            <motion.div 
+            <motion.div
               className="text-3xl font-bold text-gray-900 dark:text-gray-100"
               initial={animated ? { scale: 1.2, opacity: 0 } : false}
               animate={animated ? { scale: 1, opacity: 1 } : false}
@@ -197,7 +202,7 @@ export function KPICard({
             <div className="flex items-center gap-3">
               {/* Trend Indicator */}
               {(calculatedTrend !== 'neutral' || calculatedTrendValue > 0) && (
-                <motion.div 
+                <motion.div
                   className={cn('flex items-center gap-1', getTrendColor())}
                   initial={animated ? { x: -10, opacity: 0 } : false}
                   animate={animated ? { x: 0, opacity: 1 } : false}
@@ -212,7 +217,7 @@ export function KPICard({
 
               {/* Severity Badge */}
               {severity && severity !== 'normal' && (
-                <Badge 
+                <Badge
                   severity={severity}
                   size="sm"
                   {...(severity === 'critical' && { pulse: true })}
@@ -235,7 +240,7 @@ export function KPICard({
 
           {/* Sparkline Chart */}
           {sparklineData && sparklineData.length > 0 && (
-            <motion.div 
+            <motion.div
               className="mt-4 h-12"
               initial={animated ? { opacity: 0 } : false}
               animate={animated ? { opacity: 1 } : false}
@@ -243,7 +248,7 @@ export function KPICard({
             >
               <svg className="w-full h-full" viewBox={`0 0 ${sparklineData.length * 10} 100`}>
                 <motion.path
-                  d={`M ${sparklineData.map((point, index) => 
+                  d={`M ${sparklineData.map((point, index) =>
                     `${index * 10},${100 - (point / Math.max(...sparklineData)) * 80}`
                   ).join(' L ')}`}
                   fill="none"
@@ -252,8 +257,8 @@ export function KPICard({
                   className={cn(
                     'opacity-60',
                     calculatedTrend === 'up' ? 'text-green-500' :
-                    calculatedTrend === 'down' ? 'text-red-500' :
-                    'text-gray-500'
+                      calculatedTrend === 'down' ? 'text-red-500' :
+                        'text-gray-500'
                   )}
                   initial={animated ? { pathLength: 0, opacity: 0 } : false}
                   animate={animated ? { pathLength: 1, opacity: 0.6 } : false}
