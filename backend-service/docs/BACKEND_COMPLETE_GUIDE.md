@@ -32,6 +32,7 @@ DefenDDoS is a **real-time DDoS attack detection and mitigation system** that us
 - ✅ Real-time traffic monitoring and analysis
 - ✅ Dual ML model detection (Random Forest + LSTM)
 - ✅ Automatic IP blocking/unblocking
+- ✅ Distributed IP Blocklisting (Redis)
 - ✅ Time-series data storage (InfluxDB)
 - ✅ RESTful API for frontend integration
 - ✅ Scheduled threat detection (every 30 seconds)

@@ -39,7 +39,7 @@ cd backend-service
 | ML Service (FastAPI) | ✅ RUNNING | 8000 | http://localhost:8000/health |
 | Frontend (Next.js) | ⚠️ READY | 3000 | http://localhost:3000 |
 | InfluxDB | ✅ RUNNING | 8086 | http://localhost:8086/health |
-| Redis | ⚠️ READY | 6379 | - |
+| Redis | ✅ RUNNING | 6379 | - |
 | Kafka | ⚠️ READY | 9092 | - |
 | Prometheus | ⚠️ READY | 9090 | http://localhost:9090 |
 | Grafana | ⚠️ READY | 3001 | http://localhost:3001 |

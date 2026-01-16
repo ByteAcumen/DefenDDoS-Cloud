@@ -1,5 +1,6 @@
 package com.defenddos.backend_service.controller;
 
+import com.defenddos.backend_service.util.SecurityUtils;
 import com.influxdb.exceptions.InfluxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +31,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InfluxException.class)
     public ResponseEntity<Map<String, Object>> handleInfluxDbException(InfluxException ex) {
         logger.error("InfluxDB operation failed: {}", ex.getMessage(), ex);
-        
+
+        String safeMessage = SecurityUtils.sanitizeErrorMessage(
+                "Could not connect to or write to the time-series database. Please try again later.");
         Map<String, Object> errorResponse = createErrorResponse(
-            "DATABASE_ERROR",
-            "Database operation failed",
-            "Could not connect to or write to the time-series database. Please try again later.",
-            HttpStatus.SERVICE_UNAVAILABLE
-        );
-        
+                "DATABASE_ERROR",
+                "Database operation failed",
+                safeMessage,
+                HttpStatus.SERVICE_UNAVAILABLE);
+
         return new ResponseEntity<>(errorResponse, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
@@ -47,14 +49,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDeniedException(AccessDeniedException ex) {
         logger.warn("Access denied: {}", ex.getMessage());
-        
+
+        String safeMessage = SecurityUtils.sanitizeErrorMessage("You do not have permission to access this resource.");
         Map<String, Object> errorResponse = createErrorResponse(
-            "ACCESS_DENIED",
-            "Access denied",
-            "You do not have permission to access this resource.",
-            HttpStatus.FORBIDDEN
-        );
-        
+                "ACCESS_DENIED",
+                "Access denied",
+                safeMessage,
+                HttpStatus.FORBIDDEN);
+
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
@@ -64,14 +66,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
         logger.warn("Validation error: {}", ex.getMessage());
-        
+
         Map<String, Object> errorResponse = createErrorResponse(
-            "VALIDATION_ERROR",
-            "Invalid input data",
-            "The provided data is invalid. Please check your input and try again.",
-            HttpStatus.BAD_REQUEST
-        );
-        
+                "VALIDATION_ERROR",
+                "Invalid input data",
+                "The provided data is invalid. Please check your input and try again.",
+                HttpStatus.BAD_REQUEST);
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -81,14 +82,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
         logger.warn("Type mismatch error: {}", ex.getMessage());
-        
+
         Map<String, Object> errorResponse = createErrorResponse(
-            "INVALID_PARAMETER",
-            "Invalid parameter type",
-            "The provided parameter format is invalid. Expected: " + ex.getRequiredType().getSimpleName(),
-            HttpStatus.BAD_REQUEST
-        );
-        
+                "INVALID_PARAMETER",
+                "Invalid parameter type",
+                "The provided parameter format is invalid. Expected: " + ex.getRequiredType().getSimpleName(),
+                HttpStatus.BAD_REQUEST);
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -98,14 +98,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
         logger.warn("Illegal argument: {}", ex.getMessage());
-        
+
         Map<String, Object> errorResponse = createErrorResponse(
-            "INVALID_ARGUMENT",
-            "Invalid argument",
-            ex.getMessage(),
-            HttpStatus.BAD_REQUEST
-        );
-        
+                "INVALID_ARGUMENT",
+                "Invalid argument",
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST);
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -115,14 +114,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         logger.error("Unexpected error occurred: {}", ex.getMessage(), ex);
-        
+
         Map<String, Object> errorResponse = createErrorResponse(
-            "INTERNAL_ERROR",
-            "An unexpected error occurred",
-            "The system encountered an unexpected error. Please try again later or contact support.",
-            HttpStatus.INTERNAL_SERVER_ERROR
-        );
-        
+                "INTERNAL_ERROR",
+                "An unexpected error occurred",
+                "The system encountered an unexpected error. Please try again later or contact support.",
+                HttpStatus.INTERNAL_SERVER_ERROR);
+
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -137,7 +135,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", error);
         errorResponse.put("message", message);
         errorResponse.put("path", ""); // This could be enhanced to include request path
-        
+
         return errorResponse;
     }
 }

@@ -28,6 +28,12 @@ services:
       - IPFS_PORT=5001
       - BLOCKCHAIN_ENABLED=true
       - BLOCKCHAIN_NETWORK_URL=https://rpc-mumbai.maticvigil.com
+      - ADMIN_PASSWORD=admin123
+      - DEFENDDOS_SECURITY_API_KEY=defenddos-api-key
+      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - DEFENDDOS_REDIS_HOST=redis
+      - DEFENDDOS_INFLUX_DB_URL=http://influxdb:8086
     depends_on:
       - influxdb
       - redis

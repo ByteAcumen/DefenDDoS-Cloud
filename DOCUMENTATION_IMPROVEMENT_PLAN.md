@@ -23,6 +23,7 @@
 ### New Documentation (Created Today)
 11. ✅ **FRONTEND_ENHANCEMENT_PLAN.md** - Complete enhancement roadmap
 12. ✅ **IMPLEMENTATION_GUIDE.md** - Step-by-step implementation guide
+13. ✅ **REDIS_INTEGRATION.md** - Guide for the new Redis-backed IP blocking
 
 ---
 

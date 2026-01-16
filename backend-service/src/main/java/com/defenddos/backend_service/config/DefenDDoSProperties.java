@@ -16,6 +16,7 @@ public class DefenDDoSProperties {
     private final Mitigation mitigation = new Mitigation();
     private final Alerts alerts = new Alerts();
     private final MlService mlService = new MlService();
+    private final Redis redis = new Redis();
 
     // Getters
     public InfluxDb getInfluxDb() {
@@ -36,6 +37,10 @@ public class DefenDDoSProperties {
 
     public MlService getMlService() {
         return mlService;
+    }
+
+    public Redis getRedis() {
+        return redis;
     }
 
     /**
@@ -286,5 +291,30 @@ public class DefenDDoSProperties {
         public void setRetryAttempts(int retryAttempts) {
             this.retryAttempts = retryAttempts;
         }
+    }
+    
+    /**
+     * Redis connection and blocklist properties
+     */
+    public static class Redis {
+        private String host = "localhost";
+        private int port = 6379;
+        private String password = "";
+        private int database = 0;
+        private int ttlHours = 24;
+        private int localCacheSeconds = 60;
+
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        public int getDatabase() { return database; }
+        public void setDatabase(int database) { this.database = database; }
+        public int getTtlHours() { return ttlHours; }
+        public void setTtlHours(int ttlHours) { this.ttlHours = ttlHours; }
+        public int getLocalCacheSeconds() { return localCacheSeconds; }
+        public void setLocalCacheSeconds(int localCacheSeconds) { this.localCacheSeconds = localCacheSeconds; }
     }
 }

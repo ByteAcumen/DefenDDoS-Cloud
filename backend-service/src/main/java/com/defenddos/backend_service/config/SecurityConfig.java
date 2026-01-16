@@ -26,13 +26,21 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session.sessionCreationPolicy(
                                                 org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(authz -> authz
-                                                // Public endpoints
-                                                .requestMatchers("/actuator/**").permitAll()
-                                                .requestMatchers("/api/v1/public/**").permitAll() // Setup a public path
-                                                                                                  // if needed
-                                                // Secured endpoints
+                                                // Public health check only
+                                                .requestMatchers("/actuator/health").permitAll()
+                                                .requestMatchers("/actuator/health/liveness").permitAll()
+                                                .requestMatchers("/actuator/health/readiness").permitAll()
+
+                                                // Secure all other actuator endpoints
+                                                .requestMatchers("/actuator/**").authenticated()
+
+                                                // Public API endpoints (if any)
+                                                .requestMatchers("/api/v1/public/**").permitAll()
+
+                                                // All other API endpoints require authentication
                                                 .requestMatchers("/api/**").authenticated()
-                                                // Default
+
+                                                // Default: require authentication
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(apiKeyAuthFilter,
                                                 org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)

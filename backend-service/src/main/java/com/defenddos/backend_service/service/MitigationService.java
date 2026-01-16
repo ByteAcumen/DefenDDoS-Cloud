@@ -5,20 +5,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
- * Service responsible for automated mitigation of detected threats
- * Provides IP blocking/unblocking capabilities.
+ * Service responsible for automated mitigation of detected threats.
+ * Provides IP blocking/unblocking capabilities using Redis for distributed
+ * storage.
  * 
  * NOTE: For Render/Cloud compatibility, this service uses Application-Layer
- * blocking.
- * It maintains a list of blocked IPs in memory. An IpBlockingFilter should be
- * used
- * to reject requests from these IPs.
+ * blocking
+ * with Redis-backed storage to ensure consistency across multiple instances.
  */
 @Service
 public class MitigationService {
@@ -30,8 +27,8 @@ public class MitigationService {
             "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|" +
                     "^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
 
-    // Track blocked IPs (Thread-safe Set)
-    private final Set<String> blockedIps = ConcurrentHashMap.newKeySet();
+    private final RedisBlocklistService redisBlocklistService;
+    private final SecurityAuditService auditService;
 
     @Value("${defenddos.mitigation.enabled:true}")
     private boolean mitigationEnabled;
@@ -42,9 +39,39 @@ public class MitigationService {
     @Value("${defenddos.mitigation.max-blocked-ips:100}")
     private int maxBlockedIps;
 
+    public MitigationService(RedisBlocklistService redisBlocklistService,
+            SecurityAuditService auditService) {
+        this.redisBlocklistService = redisBlocklistService;
+        this.auditService = auditService;
+        logger.info("MitigationService initialized with Redis-backed IP blocking");
+    }
+
     /**
-     * Block an IP address using application-layer blocking
+     * Validate reason string to prevent command injection
      */
+    private boolean isValidReason(String reason) {
+        if (reason == null || reason.isEmpty()) {
+            return true; // Allow empty reasons
+        }
+
+        // Allow only safe characters: alphanumeric, spaces, basic punctuation
+        // Max length: 200 characters
+        return reason.matches("^[a-zA-Z0-9\\s\\-_.,!?()]{1,200}$");
+    }
+
+    /**
+     * Sanitize reason string
+     */
+    private String sanitizeReason(String reason) {
+        if (reason == null || reason.isEmpty()) {
+            return "No reason provided";
+        }
+
+        // Remove any potentially dangerous characters
+        String sanitized = reason.replaceAll("[^a-zA-Z0-9\\s\\-_.,!?()]", "");
+        return sanitized.substring(0, Math.min(sanitized.length(), 200));
+    }
+
     /**
      * Block an IP address using application-layer blocking
      */
@@ -56,20 +83,27 @@ public class MitigationService {
 
         String sanitizedIp = ipAddress.trim();
 
+        // Validate and sanitize reason
+        if (!isValidReason(reason)) {
+            logger.warn("Invalid reason format, sanitizing: {}", reason);
+            reason = sanitizeReason(reason);
+        }
+
         // Validate IP address format
         if (!isValidIpAddress(sanitizedIp)) {
             logger.warn("Invalid IP address format attempted for blocking: {}", sanitizedIp);
             return false;
         }
 
-        // Check if already blocked
-        if (blockedIps.contains(sanitizedIp)) {
+        // Check if already blocked (check Redis)
+        if (redisBlocklistService.isIpBlocked(sanitizedIp)) {
             logger.info("IP {} is already blocked", sanitizedIp);
             return true;
         }
 
         // Check maximum blocked IPs limit
-        if (blockedIps.size() >= maxBlockedIps) {
+        int currentBlockedCount = redisBlocklistService.getBlockedIps().size();
+        if (currentBlockedCount >= maxBlockedIps) {
             logger.warn("Maximum blocked IPs limit ({}) reached. Cannot block: {}", maxBlockedIps, sanitizedIp);
             return false;
         }
@@ -85,13 +119,17 @@ public class MitigationService {
             return true;
         }
 
-        // Action: Add to memory set
-        blockedIps.add(sanitizedIp);
-        logger.info("BLOCKED IP: {} for reason: {}. Total blocked: {}", sanitizedIp, reason, blockedIps.size());
+        // Action: Add to Redis
+        boolean success = redisBlocklistService.blockIp(sanitizedIp, reason);
 
-        // TODO: In a real distributed system, publish this event to Redis/Kafka so
-        // other instances also block it.
-        return true;
+        if (success) {
+            auditService.logIpBlocked(sanitizedIp, reason, "MitigationService");
+            logger.info("BLOCKED IP in Redis: {} for reason: {}", sanitizedIp, reason);
+        } else {
+            logger.error("Failed to block IP in Redis: {}", sanitizedIp);
+        }
+
+        return success;
     }
 
     /**
@@ -105,19 +143,19 @@ public class MitigationService {
             return false;
         }
 
-        if (!blockedIps.contains(sanitizedIp)) {
-            logger.info("IP {} is not currently blocked", sanitizedIp);
-            return true;
-        }
-
         if (dryRunMode) {
             logger.info("[DRY RUN] Would unblock IP: {}", sanitizedIp);
             return true;
         }
 
-        blockedIps.remove(sanitizedIp);
-        logger.info("UNBLOCKED IP: {}. Total blocked: {}", sanitizedIp, blockedIps.size());
-        return true;
+        boolean success = redisBlocklistService.unblockIp(sanitizedIp);
+
+        if (success) {
+            auditService.logIpUnblocked(sanitizedIp, "MitigationService");
+            logger.info("UNBLOCKED IP from Redis: {}", sanitizedIp);
+        }
+
+        return success;
     }
 
     /**
@@ -125,24 +163,28 @@ public class MitigationService {
      * Used by IpBlockingFilter to reject requests.
      */
     public boolean isIpBlocked(String ipAddress) {
-        return !dryRunMode && ipAddress != null && blockedIps.contains(ipAddress.trim());
+        if (dryRunMode || ipAddress == null) {
+            return false;
+        }
+        return redisBlocklistService.isIpBlocked(ipAddress.trim());
     }
 
     /**
-     * Get set of currently blocked IPs
+     * Get set of currently blocked IPs from Redis
      */
     public Set<String> getBlockedIps() {
-        return Set.copyOf(blockedIps);
+        return redisBlocklistService.getBlockedIps();
     }
 
     /**
      * Get mitigation status information
      */
     public MitigationStatus getStatus() {
+        int blockedCount = redisBlocklistService.getBlockedIps().size();
         return new MitigationStatus(
                 mitigationEnabled,
                 dryRunMode,
-                blockedIps.size(),
+                blockedCount,
                 maxBlockedIps);
     }
 
