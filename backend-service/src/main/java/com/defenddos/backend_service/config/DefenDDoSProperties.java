@@ -16,13 +16,32 @@ public class DefenDDoSProperties {
     private final Mitigation mitigation = new Mitigation();
     private final Alerts alerts = new Alerts();
     private final MlService mlService = new MlService();
+    private final Redis redis = new Redis();
 
     // Getters
-    public InfluxDb getInfluxDb() { return influxDb; }
-    public Detection getDetection() { return detection; }
-    public Mitigation getMitigation() { return mitigation; }
-    public Alerts getAlerts() { return alerts; }
-    public MlService getMlService() { return mlService; }
+    public InfluxDb getInfluxDb() {
+        return influxDb;
+    }
+
+    public Detection getDetection() {
+        return detection;
+    }
+
+    public Mitigation getMitigation() {
+        return mitigation;
+    }
+
+    public Alerts getAlerts() {
+        return alerts;
+    }
+
+    public MlService getMlService() {
+        return mlService;
+    }
+
+    public Redis getRedis() {
+        return redis;
+    }
 
     /**
      * InfluxDB connection properties
@@ -34,14 +53,37 @@ public class DefenDDoSProperties {
         private String bucket = "ddos-bucket";
 
         // Getters and setters
-        public String getUrl() { return url; }
-        public void setUrl(String url) { this.url = url; }
-        public String getToken() { return token; }
-        public void setToken(String token) { this.token = token; }
-        public String getOrg() { return org; }
-        public void setOrg(String org) { this.org = org; }
-        public String getBucket() { return bucket; }
-        public void setBucket(String bucket) { this.bucket = bucket; }
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public String getOrg() {
+            return org;
+        }
+
+        public void setOrg(String org) {
+            this.org = org;
+        }
+
+        public String getBucket() {
+            return bucket;
+        }
+
+        public void setBucket(String bucket) {
+            this.bucket = bucket;
+        }
     }
 
     /**
@@ -53,12 +95,29 @@ public class DefenDDoSProperties {
         private String timeWindow = "-5m";
 
         // Getters and setters
-        public boolean isEnabled() { return enabled; }
-        public void setEnabled(boolean enabled) { this.enabled = enabled; }
-        public int getPacketThreshold() { return packetThreshold; }
-        public void setPacketThreshold(int packetThreshold) { this.packetThreshold = packetThreshold; }
-        public String getTimeWindow() { return timeWindow; }
-        public void setTimeWindow(String timeWindow) { this.timeWindow = timeWindow; }
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getPacketThreshold() {
+            return packetThreshold;
+        }
+
+        public void setPacketThreshold(int packetThreshold) {
+            this.packetThreshold = packetThreshold;
+        }
+
+        public String getTimeWindow() {
+            return timeWindow;
+        }
+
+        public void setTimeWindow(String timeWindow) {
+            this.timeWindow = timeWindow;
+        }
     }
 
     /**
@@ -74,20 +133,61 @@ public class DefenDDoSProperties {
         private int autoUnblockHours = 24;
 
         // Getters and setters
-        public boolean isEnabled() { return enabled; }
-        public void setEnabled(boolean enabled) { this.enabled = enabled; }
-        public boolean isDryRun() { return dryRun; }
-        public void setDryRun(boolean dryRun) { this.dryRun = dryRun; }
-        public boolean isAutoBlock() { return autoBlock; }
-        public void setAutoBlock(boolean autoBlock) { this.autoBlock = autoBlock; }
-        public String getBlockScriptPath() { return blockScriptPath; }
-        public void setBlockScriptPath(String blockScriptPath) { this.blockScriptPath = blockScriptPath; }
-        public String getUnblockScriptPath() { return unblockScriptPath; }
-        public void setUnblockScriptPath(String unblockScriptPath) { this.unblockScriptPath = unblockScriptPath; }
-        public int getMaxBlockedIps() { return maxBlockedIps; }
-        public void setMaxBlockedIps(int maxBlockedIps) { this.maxBlockedIps = maxBlockedIps; }
-        public int getAutoUnblockHours() { return autoUnblockHours; }
-        public void setAutoUnblockHours(int autoUnblockHours) { this.autoUnblockHours = autoUnblockHours; }
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isDryRun() {
+            return dryRun;
+        }
+
+        public void setDryRun(boolean dryRun) {
+            this.dryRun = dryRun;
+        }
+
+        public boolean isAutoBlock() {
+            return autoBlock;
+        }
+
+        public void setAutoBlock(boolean autoBlock) {
+            this.autoBlock = autoBlock;
+        }
+
+        public String getBlockScriptPath() {
+            return blockScriptPath;
+        }
+
+        public void setBlockScriptPath(String blockScriptPath) {
+            this.blockScriptPath = blockScriptPath;
+        }
+
+        public String getUnblockScriptPath() {
+            return unblockScriptPath;
+        }
+
+        public void setUnblockScriptPath(String unblockScriptPath) {
+            this.unblockScriptPath = unblockScriptPath;
+        }
+
+        public int getMaxBlockedIps() {
+            return maxBlockedIps;
+        }
+
+        public void setMaxBlockedIps(int maxBlockedIps) {
+            this.maxBlockedIps = maxBlockedIps;
+        }
+
+        public int getAutoUnblockHours() {
+            return autoUnblockHours;
+        }
+
+        public void setAutoUnblockHours(int autoUnblockHours) {
+            this.autoUnblockHours = autoUnblockHours;
+        }
     }
 
     /**
@@ -97,9 +197,17 @@ public class DefenDDoSProperties {
         private boolean enabled = true;
         private final Email email = new Email();
 
-        public boolean isEnabled() { return enabled; }
-        public void setEnabled(boolean enabled) { this.enabled = enabled; }
-        public Email getEmail() { return email; }
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public Email getEmail() {
+            return email;
+        }
 
         public static class Email {
             private boolean enabled = false;
@@ -108,14 +216,37 @@ public class DefenDDoSProperties {
             private String subject = "DefenDDoS Alert";
 
             // Getters and setters
-            public boolean isEnabled() { return enabled; }
-            public void setEnabled(boolean enabled) { this.enabled = enabled; }
-            public String getTo() { return to; }
-            public void setTo(String to) { this.to = to; }
-            public String getFrom() { return from; }
-            public void setFrom(String from) { this.from = from; }
-            public String getSubject() { return subject; }
-            public void setSubject(String subject) { this.subject = subject; }
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public String getTo() {
+                return to;
+            }
+
+            public void setTo(String to) {
+                this.to = to;
+            }
+
+            public String getFrom() {
+                return from;
+            }
+
+            public void setFrom(String from) {
+                this.from = from;
+            }
+
+            public String getSubject() {
+                return subject;
+            }
+
+            public void setSubject(String subject) {
+                this.subject = subject;
+            }
         }
     }
 
@@ -129,13 +260,61 @@ public class DefenDDoSProperties {
         private int retryAttempts = 3;
 
         // Getters and setters
-        public boolean isEnabled() { return enabled; }
-        public void setEnabled(boolean enabled) { this.enabled = enabled; }
-        public String getUrl() { return url; }
-        public void setUrl(String url) { this.url = url; }
-        public int getTimeoutSeconds() { return timeoutSeconds; }
-        public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
-        public int getRetryAttempts() { return retryAttempts; }
-        public void setRetryAttempts(int retryAttempts) { this.retryAttempts = retryAttempts; }
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public int getTimeoutSeconds() {
+            return timeoutSeconds;
+        }
+
+        public void setTimeoutSeconds(int timeoutSeconds) {
+            this.timeoutSeconds = timeoutSeconds;
+        }
+
+        public int getRetryAttempts() {
+            return retryAttempts;
+        }
+
+        public void setRetryAttempts(int retryAttempts) {
+            this.retryAttempts = retryAttempts;
+        }
+    }
+    
+    /**
+     * Redis connection and blocklist properties
+     */
+    public static class Redis {
+        private String host = "localhost";
+        private int port = 6379;
+        private String password = "";
+        private int database = 0;
+        private int ttlHours = 24;
+        private int localCacheSeconds = 60;
+
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        public int getDatabase() { return database; }
+        public void setDatabase(int database) { this.database = database; }
+        public int getTtlHours() { return ttlHours; }
+        public void setTtlHours(int ttlHours) { this.ttlHours = ttlHours; }
+        public int getLocalCacheSeconds() { return localCacheSeconds; }
+        public void setLocalCacheSeconds(int localCacheSeconds) { this.localCacheSeconds = localCacheSeconds; }
     }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -37,13 +37,83 @@ interface NavGroup {
   items: NavItem[];
 }
 
+// Memoized navigation data to prevent recreation on every render
+const navGroups: NavGroup[] = [
+  {
+    title: 'Overview',
+    items: [
+      {
+        name: 'Dashboard',
+        href: '/dashboard',
+        icon: LayoutDashboard,
+        description: 'System overview'
+      },
+      {
+        name: 'Analytics',
+        href: '/analytics',
+        icon: TrendingUp,
+        description: 'Traffic analytics'
+      },
+    ]
+  },
+  {
+    title: 'Security',
+    items: [
+      {
+        name: 'Threat Detection',
+        href: '/threat-detection',
+        icon: AlertTriangle,
+        badge: '3',
+        description: 'Active threats'
+      },
+      {
+        name: 'Blocked IPs',
+        href: '/blocked-ips',
+        icon: Ban,
+        badge: '12',
+        description: 'IP blacklist'
+      },
+      {
+        name: 'Traffic Monitor',
+        href: '/traffic',
+        icon: Activity,
+        description: 'Network traffic'
+      },
+    ]
+  },
+  {
+    title: 'System',
+    items: [
+      {
+        name: 'System Health',
+        href: '/system',
+        icon: Settings,
+        description: 'Service status'
+      },
+      {
+        name: 'Notifications',
+        href: '/notifications',
+        icon: Bell,
+        badge: 'new',
+        description: 'Alerts & events'
+      },
+      {
+        name: 'Admin Panel',
+        href: '/admin',
+        icon: Users,
+        description: 'User management'
+      },
+    ]
+  },
+];
+
 export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024);
 
-  // Detect if we're on desktop
+  // Memoize desktop detection to prevent unnecessary re-renders
   useEffect(() => {
     const checkDesktop = () => {
       setIsDesktop(window.innerWidth >= 1024);
@@ -57,83 +127,15 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
-  const navGroups: NavGroup[] = [
-    {
-      title: 'Overview',
-      items: [
-        {
-          name: 'Dashboard',
-          href: '/dashboard',
-          icon: LayoutDashboard,
-          description: 'System overview'
-        },
-        {
-          name: 'Analytics',
-          href: '/analytics',
-          icon: TrendingUp,
-          description: 'Traffic analytics'
-        },
-      ]
-    },
-    {
-      title: 'Security',
-      items: [
-        {
-          name: 'Threat Detection',
-          href: '/threat-detection',
-          icon: AlertTriangle,
-          badge: '3',
-          description: 'Active threats'
-        },
-        {
-          name: 'Blocked IPs',
-          href: '/blocked-ips',
-          icon: Ban,
-          badge: '12',
-          description: 'IP blacklist'
-        },
-        {
-          name: 'Traffic Monitor',
-          href: '/traffic',
-          icon: Activity,
-          description: 'Network traffic'
-        },
-      ]
-    },
-    {
-      title: 'System',
-      items: [
-        {
-          name: 'System Health',
-          href: '/system',
-          icon: Settings,
-          description: 'Service status'
-        },
-        {
-          name: 'Notifications',
-          href: '/notifications',
-          icon: Bell,
-          badge: 'new',
-          description: 'Alerts & events'
-        },
-        {
-          name: 'Admin Panel',
-          href: '/admin',
-          icon: Users,
-          description: 'User management'
-        },
-      ]
-    },
-  ];
-
-  const isActive = (href: string) => pathname === href;
+  // Memoize active state calculation
+  const isActive = useMemo(() => (href: string) => pathname === href, [pathname]);
 
   // Auto-collapse on mobile when navigating
   useEffect(() => {
     if (onClose && isOpen && typeof window !== 'undefined' && window.innerWidth < 1024) {
       onClose();
     }
-  }, [pathname]); // Only close when pathname changes
+  }, [pathname, onClose, isOpen]); // Only close when pathname changes
 
   return (
     <>

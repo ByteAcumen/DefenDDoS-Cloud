@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, 
@@ -46,20 +46,19 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.03,
+      staggerChildren: 0.08,
       delayChildren: 0,
-      duration: 0.2,
+      duration: 0.25,
       ease: [0.25, 0.1, 0.25, 1] as any
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 8, scale: 0.98 },
+  hidden: { opacity: 0, y: 8 },
   visible: { 
     opacity: 1, 
     y: 0,
-    scale: 1,
     transition: { 
       duration: 0.25,
       ease: [0.25, 0.1, 0.25, 1] as any
@@ -71,13 +70,34 @@ const cardHoverVariants = {
   rest: { scale: 1, y: 0 },
   hover: { 
     scale: 1.01, 
-    y: -2,
+    y: -1,
     transition: { 
       duration: 0.15,
       ease: [0.25, 0.1, 0.25, 1] as any
     }
   }
 };
+
+// Loading skeleton component
+const DashboardSkeleton = () => (
+  <div className="space-y-6">
+    <div className="h-32 rounded-2xl bg-muted animate-pulse"></div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="h-24 rounded-xl bg-muted animate-pulse"></div>
+      ))}
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 h-80 rounded-xl bg-muted animate-pulse"></div>
+      <div className="h-80 rounded-xl bg-muted animate-pulse"></div>
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="h-64 rounded-xl bg-muted animate-pulse"></div>
+      ))}
+    </div>
+  </div>
+);
 
 export default function DashboardPage() {
   const [selectedTimeRange, setSelectedTimeRange] = useState('-1h');
@@ -107,12 +127,12 @@ export default function DashboardPage() {
   const liveLoading = isLoading;
   
   // Extract data from proper backend structure
-  const metrics = {
+  const metrics = useMemo(() => ({
     currentPacketsPerSecond: realtimeMetrics?.currentPacketsPerSecond || 0,
     activeThreatsCount: securityDashboard?.activeThreats || 0,
     blockedIPsCount: blockedIPs?.count || 0,
     totalBytes: realtimeMetrics?.totalBytes || 0
-  };
+  }), [realtimeMetrics, securityDashboard, blockedIPs]);
 
   // Memoize processed data to prevent unnecessary recalculations
   const trafficData = useMemo(() => {
@@ -217,7 +237,7 @@ export default function DashboardPage() {
   }, [mlPredictions]);
 
   // Get system health status based on backend documentation
-  const getSystemHealth = () => {
+  const getSystemHealth = useCallback(() => {
     // SIMPLIFIED: Just check if the query succeeded
     const backendOnline = backendHealth && !hasError;
     const mlOnline = mlHealth && !hasError;
@@ -236,9 +256,38 @@ export default function DashboardPage() {
     } else {
       return { status: 'operational', color: 'text-green-500', message: 'System Healthy' };
     }
-  };
+  }, [backendHealth, hasError, mlHealth, metrics]);
 
-  const systemHealth = getSystemHealth();
+  const systemHealth = useMemo(() => getSystemHealth(), [getSystemHealth]);
+
+  // Optimized handler functions
+  const handleTimeRangeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRange = e.target.value;
+    setSelectedTimeRange(newRange);
+    // Delay refetch to prevent excessive API calls
+    setTimeout(() => {
+      refetchTraffic();
+      refetchDetection();
+      refetchML();
+    }, 100);
+  }, [refetchDetection, refetchML, refetchTraffic]);
+
+  const handlePauseToggle = useCallback(() => {
+    const newPaused = !isPaused;
+    setIsPaused(newPaused);
+    setIsLiveMode(!newPaused);
+  }, [isPaused]);
+
+  const handleRefresh = useCallback(() => {
+    refetchTraffic();
+    refetchDetection();
+    refetchML();
+  }, [refetchDetection, refetchML, refetchTraffic]);
+
+  // Show skeleton while initial data is loading
+  if (isLoading && !securityDashboard && !realtimeMetrics) {
+    return <DashboardSkeleton />;
+  }
 
   // Error state - Only show if truly unable to connect AND no data is available
   if (hasError && isLoading && !securityDashboard && !realtimeMetrics && !backendHealth) {
@@ -334,15 +383,7 @@ export default function DashboardPage() {
             {/* Time Range Selector */}
             <select
               value={selectedTimeRange}
-              onChange={(e) => {
-                setSelectedTimeRange(e.target.value);
-                // Immediately refetch data with new time range
-                setTimeout(() => {
-                  refetchTraffic();
-                  refetchDetection();
-                  refetchML();
-                }, 100);
-              }}
+              onChange={handleTimeRangeChange}
               className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 text-xs sm:text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 cursor-pointer hover:bg-card"
             >
               <option value="-5m">Last 5 minutes</option>
@@ -350,6 +391,9 @@ export default function DashboardPage() {
               <option value="-1h">Last hour</option>
               <option value="-6h">Last 6 hours</option>
               <option value="-24h">Last 24 hours</option>
+              <option value="-7d">Last 7 days</option>
+              <option value="-30d">Last 30 days</option>
+              <option value="-90d">Last 3 months</option>
             </select>
 
             {/* Action Buttons */}
@@ -358,11 +402,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    refetchTraffic();
-                    refetchDetection();
-                    refetchML();
-                  }}
+                  onClick={handleRefresh}
                   leftIcon={<RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />}
                   className="text-xs sm:text-sm font-medium flex-1 sm:flex-none"
                 >
@@ -373,10 +413,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setIsPaused(!isPaused);
-                  setIsLiveMode(!isLiveMode);
-                }}
+                onClick={handlePauseToggle}
                 leftIcon={isLiveMode ? <Activity className="w-3 h-3 sm:w-4 sm:h-4" /> : <Clock className="w-3 h-3 sm:w-4 sm:h-4" />}
                 className="text-xs sm:text-sm font-medium flex-1 sm:flex-none"
               >

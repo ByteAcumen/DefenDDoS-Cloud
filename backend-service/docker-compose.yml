@@ -26,6 +26,24 @@ services:
       timeout: 10s
       retries: 3
 
+  # Redis for Caching and Rate Limiting
+  redis:
+    image: redis:7.2-alpine
+    container_name: defenddos-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass SecureRedisPassword123
+    volumes:
+      - redis-data:/data
+    networks:
+      - defenddos-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "SecureRedisPassword123", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # DefenDDoS Backend Service
   backend-service:
     build:
@@ -55,6 +73,9 @@ services:
       - DEFENDDOS_ML_SERVICE_URL=http://ml-service:8000
       - DEFENDDOS_ML_SERVICE_TIMEOUT_SECONDS=10
       - DEFENDDOS_ML_SERVICE_RETRY_ATTEMPTS=3
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=SecureRedisPassword123
     depends_on:
       influxdb:
         condition: service_healthy
@@ -97,3 +118,4 @@ networks:
 volumes:
   influxdb-data:
   influxdb-config:
+  redis-data:

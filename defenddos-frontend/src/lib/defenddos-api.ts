@@ -24,6 +24,57 @@ const mlApi = axios.create({
   },
 });
 
+// Enhanced request caching with LRU eviction
+class LRUCache {
+  private cache: Map<string, { data: any; timestamp: number }>;
+  private maxSize: number;
+  private ttl: number;
+
+  constructor(maxSize: number = 50, ttl: number = 60000) { // 60 seconds default TTL
+    this.cache = new Map();
+    this.maxSize = maxSize;
+    this.ttl = ttl;
+  }
+
+  get(key: string): any | null {
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    // Check if item is expired
+    if (Date.now() - item.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.data;
+  }
+
+  set(key: string, data: any): void {
+    // Remove oldest item if cache is full
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) this.cache.delete(firstKey);
+    }
+
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// Create cache instance with optimized settings
+const requestCache = new LRUCache(30, 45000); // 30 items, 45 seconds TTL
+
+// Function to generate cache key
+const generateCacheKey = (url: string, params: any = {}) => {
+  return `${url}?${JSON.stringify(params)}`;
+};
+
 // Track if we've shown connection errors to avoid spam
 let connectionErrorShown = false;
 let lastErrorTime = 0;
@@ -107,25 +158,42 @@ export const trafficAPI = {
     byteCount: number;
     timestamp?: string;
   }) {
+    // Clear cache when new data is ingested
+    requestCache.clear();
     const response = await api.post('/api/v1/traffic/ingest', data);
     return response.data;
   },
 
   // 5. Query Traffic Records
   async queryTraffic(range: string = '-1h') {
+    const cacheKey = generateCacheKey('/api/v1/traffic/query', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/traffic/query?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   // 6. Traffic Summary by IP
   async getTrafficSummary(range: string = '-1h') {
+    const cacheKey = generateCacheKey('/api/v1/traffic/summary', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/traffic/summary?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   // 7. Traffic Visualization (Time Series)
   async getTrafficVisualization(range: string = '-1h', window: string = '5m') {
+    const cacheKey = generateCacheKey('/api/v1/traffic/visualization', { range, window });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/traffic/visualization?range=${range}&window=${window}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
@@ -142,7 +210,12 @@ export const trafficAPI = {
 
   // 3. ML Connection via Backend
   async getMLHealth() {
+    const cacheKey = generateCacheKey('/api/v1/traffic/ml-health');
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get('/api/v1/traffic/ml-health');
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 };
@@ -151,13 +224,23 @@ export const trafficAPI = {
 export const statisticsAPI = {
   // 9. Detailed Statistics
   async getDetailedStatistics(range: string = '-1h') {
+    const cacheKey = generateCacheKey('/api/v1/statistics/detailed', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/statistics/detailed?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   // 10. Real-time Metrics
   async getRealtimeMetrics(window: string = '1m') {
+    const cacheKey = generateCacheKey('/api/v1/statistics/realtime', { window });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/statistics/realtime?window=${window}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
@@ -165,13 +248,23 @@ export const statisticsAPI = {
   async getAttackAnalysis(range: string = '-1h', sourceIp?: string) {
     const params: any = { range };
     if (sourceIp) params.sourceIp = sourceIp;
+    const cacheKey = generateCacheKey('/api/v1/statistics/attack-analysis', params);
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get('/api/v1/statistics/attack-analysis', { params });
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   // 12. ML Statistics
   async getMLStats(range: string = '-1h') {
+    const cacheKey = generateCacheKey('/api/v1/statistics/ml-stats', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/statistics/ml-stats?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 };
@@ -179,27 +272,52 @@ export const statisticsAPI = {
 // Data Retrieval API (New in v2.0)
 export const dataAPI = {
   async getAllTrafficData(range: string = '-24h') {
+    const cacheKey = generateCacheKey('/api/v1/data/traffic/all', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/data/traffic/all?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   async getAllMLPredictions(range: string = '-24h') {
+    const cacheKey = generateCacheKey('/api/v1/data/ml-predictions/all', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/data/ml-predictions/all?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   async getAllDetectionEvents(range: string = '-24h') {
+    const cacheKey = generateCacheKey('/api/v1/data/detection-events/all', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/data/detection-events/all?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   async getAllBlockedIPs(range: string = '-30d') {
+    const cacheKey = generateCacheKey('/api/v1/data/blocked-ips/all', { range });
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get(`/api/v1/data/blocked-ips/all?range=${range}`);
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 
   async getDatabaseStatistics() {
+    const cacheKey = generateCacheKey('/api/v1/data/statistics');
+    const cached = requestCache.get(cacheKey);
+    if (cached) return cached;
+    
     const response = await api.get('/api/v1/data/statistics');
+    requestCache.set(cacheKey, response.data);
     return response.data;
   },
 };
@@ -222,12 +340,16 @@ export const mitigationAPI = {
 
   // 20. Block IP Address
   async blockIP(ip: string, reason: string = 'Manual block via frontend') {
+    // Clear cache when IP is blocked
+    requestCache.clear();
     const response = await api.post(`/api/v1/mitigation/block/${ip}?reason=${encodeURIComponent(reason)}`);
     return response.data;
   },
 
   // 21. Unblock IP Address
   async unblockIP(ip: string) {
+    // Clear cache when IP is unblocked
+    requestCache.clear();
     // Note: Returns direct format (no ApiResponse wrapper)
     const response = await axios.post(`${API_BASE}/api/v1/mitigation/unblock/${ip}`);
     return response.data;
@@ -270,6 +392,8 @@ export const securityAPI = {
   },
 
   async triggerDetection() {
+    // Clear cache when detection is triggered
+    requestCache.clear();
     const response = await api.post('/api/v1/security/trigger-detection');
     return response.data;
   },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -37,6 +37,34 @@ interface HeaderProps {
   isSidebarOpen?: boolean;
 }
 
+// Memoized mock notifications to prevent recreation
+const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    type: 'critical',
+    title: 'DDoS Attack Detected',
+    message: 'High volume traffic from 203.0.113.50',
+    timestamp: new Date(Date.now() - 5 * 60000),
+    read: false
+  },
+  {
+    id: '2',
+    type: 'warning',
+    title: 'Suspicious Activity',
+    message: 'Unusual pattern detected from 198.51.100.99',
+    timestamp: new Date(Date.now() - 15 * 60000),
+    read: false
+  },
+  {
+    id: '3',
+    type: 'success',
+    title: 'IP Blocked',
+    message: 'Successfully blocked 203.0.113.50',
+    timestamp: new Date(Date.now() - 30 * 60000),
+    read: true
+  },
+];
+
 export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
@@ -44,49 +72,24 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Memoize notifications to prevent recreation
+  const notifications = useMemo(() => mockNotifications, []);
+
+  // Handle scroll effect with useCallback for better performance
+  const handleScroll = useCallback(() => {
+    setIsScrolled(window.scrollY > 10);
+  }, []);
 
   // Handle scroll effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [handleScroll]);
 
-  // Mock notifications - Replace with real API
-  useEffect(() => {
-    setNotifications([
-      {
-        id: '1',
-        type: 'critical',
-        title: 'DDoS Attack Detected',
-        message: 'High volume traffic from 203.0.113.50',
-        timestamp: new Date(Date.now() - 5 * 60000),
-        read: false
-      },
-      {
-        id: '2',
-        type: 'warning',
-        title: 'Suspicious Activity',
-        message: 'Unusual pattern detected from 198.51.100.99',
-        timestamp: new Date(Date.now() - 15 * 60000),
-        read: false
-      },
-      {
-        id: '3',
-        type: 'success',
-        title: 'IP Blocked',
-        message: 'Successfully blocked 203.0.113.50',
-        timestamp: new Date(Date.now() - 30 * 60000),
-        read: true
-      },
-    ]);
-  }, []);
-
-  const getThemeIcon = () => {
+  // Memoize theme functions
+  const getThemeIcon = useCallback(() => {
     switch (theme) {
       case 'light':
         return <Sun className="w-4 h-4" />;
@@ -95,9 +98,9 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
       default:
         return <Monitor className="w-4 h-4" />;
     }
-  };
+  }, [theme]);
 
-  const getThemeLabel = () => {
+  const getThemeLabel = useCallback(() => {
     switch (theme) {
       case 'light':
         return 'Light';
@@ -106,29 +109,29 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
       default:
         return 'System';
     }
-  };
+  }, [theme]);
 
-  const getBreadcrumbs = () => {
+  // Memoize breadcrumbs calculation
+  const breadcrumbs = useMemo(() => {
     if (!pathname) return [];
     const paths = pathname.split('/').filter(Boolean);
     return paths.map((path, index) => ({
       name: path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' '),
       href: '/' + paths.slice(0, index + 1).join('/')
     }));
-  };
+  }, [pathname]);
 
-  const breadcrumbs = getBreadcrumbs();
-
-  const getNotificationIcon = (type: string) => {
+  // Memoize notification helper functions
+  const getNotificationIcon = useCallback((type: string) => {
     switch (type) {
       case 'critical': return '🔴';
       case 'warning': return '⚠️';
       case 'success': return '✅';
       default: return 'ℹ️';
     }
-  };
+  }, []);
 
-  const formatTimestamp = (date: Date) => {
+  const formatTimestamp = useCallback((date: Date) => {
     const diff = Date.now() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     if (minutes < 1) return 'Just now';
@@ -136,9 +139,27 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
-  };
+  }, []);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Memoize unread count calculation
+  const unreadCount = useMemo(() => 
+    notifications.filter(n => !n.read).length, 
+    [notifications]
+  );
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showNotifications || showUserMenu || showThemeMenu) {
+        setShowNotifications(false);
+        setShowUserMenu(false);
+        setShowThemeMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showNotifications, showUserMenu, showThemeMenu]);
 
   return (
     <motion.header

@@ -134,22 +134,22 @@ export function generateId(length: number = 8): string {
   return result;
 }
 
-// Animation variants for Framer Motion
+// Animation variants for Framer Motion - Simplified for better performance
 export const fadeIn = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 5 },
   visible: { 
     opacity: 1, 
     y: 0,
     transition: {
-      duration: 0.3,
+      duration: 0.2,
       ease: "easeOut"
     }
   },
   exit: { 
     opacity: 0, 
-    y: 10,
+    y: 5,
     transition: {
-      duration: 0.2,
+      duration: 0.15,
       ease: "easeIn"
     }
   }
@@ -160,7 +160,7 @@ export const staggerContainer = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.08
     }
   }
 };
@@ -168,17 +168,16 @@ export const staggerContainer = {
 export const slideIn = (direction: 'left' | 'right' | 'up' | 'down' = 'up', delay = 0) => ({
   hidden: {
     opacity: 0,
-    y: direction === 'up' ? 20 : direction === 'down' ? -20 : 0,
-    x: direction === 'left' ? 20 : direction === 'right' ? -20 : 0,
+    y: direction === 'up' ? 10 : direction === 'down' ? -10 : 0,
+    x: direction === 'left' ? 10 : direction === 'right' ? -10 : 0,
   },
   show: {
     opacity: 1,
     y: 0,
     x: 0,
     transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 25,
+      type: 'tween',
+      duration: 0.2,
       delay,
     },
   },
@@ -275,4 +274,49 @@ export function getSeverityColor(severity: string): string {
  */
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+/**
+ * Deep equality check for objects
+ */
+export function deepEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) return true;
+  
+  if (obj1 == null || obj2 == null) return false;
+  
+  if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
+  
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+  
+  if (keys1.length !== keys2.length) return false;
+  
+  for (const key of keys1) {
+    if (!keys2.includes(key)) return false;
+    if (!deepEqual(obj1[key], obj2[key])) return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Shallow equality check for objects
+ */
+export function shallowEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) return true;
+  
+  if (obj1 == null || obj2 == null) return false;
+  
+  if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
+  
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+  
+  if (keys1.length !== keys2.length) return false;
+  
+  for (const key of keys1) {
+    if (obj1[key] !== obj2[key]) return false;
+  }
+  
+  return true;
 }

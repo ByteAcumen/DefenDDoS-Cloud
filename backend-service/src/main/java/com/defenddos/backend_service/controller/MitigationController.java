@@ -18,7 +18,7 @@ import java.util.Set;
 public class MitigationController {
 
     private static final Logger logger = LoggerFactory.getLogger(MitigationController.class);
-    
+
     private final MitigationService mitigationService;
 
     public MitigationController(MitigationService mitigationService) {
@@ -41,12 +41,11 @@ public class MitigationController {
     public ResponseEntity<Map<String, Object>> getBlockedIps() {
         Set<String> blockedIps = mitigationService.getBlockedIps();
         logger.debug("Retrieved {} blocked IPs", blockedIps.size());
-        
+
         return ResponseEntity.ok(Map.of(
-            "blockedIps", blockedIps,
-            "count", blockedIps.size(),
-            "timestamp", System.currentTimeMillis()
-        ));
+                "blockedIps", blockedIps,
+                "count", blockedIps.size(),
+                "timestamp", System.currentTimeMillis()));
     }
 
     /**
@@ -56,28 +55,26 @@ public class MitigationController {
     public ResponseEntity<Map<String, Object>> blockIp(
             @PathVariable String ip,
             @RequestParam(defaultValue = "Manual block via API") String reason) {
-        
+
         logger.info("Manual block request for IP: {} with reason: {}", ip, reason);
-        
+
         boolean success = mitigationService.blockIp(ip, reason);
-        
+
         if (success) {
             logger.info("Successfully blocked IP: {}", ip);
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "IP successfully blocked",
-                "ip", ip,
-                "reason", reason,
-                "timestamp", System.currentTimeMillis()
-            ));
+                    "success", true,
+                    "message", "IP successfully blocked",
+                    "ip", ip,
+                    "reason", reason,
+                    "timestamp", System.currentTimeMillis()));
         } else {
             logger.warn("Failed to block IP: {}", ip);
             return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Failed to block IP - check logs for details",
-                "ip", ip,
-                "timestamp", System.currentTimeMillis()
-            ));
+                    "success", false,
+                    "message", "Failed to block IP - check logs for details",
+                    "ip", ip,
+                    "timestamp", System.currentTimeMillis()));
         }
     }
 
@@ -87,25 +84,23 @@ public class MitigationController {
     @PostMapping("/unblock/{ip}")
     public ResponseEntity<Map<String, Object>> unblockIp(@PathVariable String ip) {
         logger.info("Manual unblock request for IP: {}", ip);
-        
+
         boolean success = mitigationService.unblockIp(ip);
-        
+
         if (success) {
             logger.info("Successfully unblocked IP: {}", ip);
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "IP successfully unblocked",
-                "ip", ip,
-                "timestamp", System.currentTimeMillis()
-            ));
+                    "success", true,
+                    "message", "IP successfully unblocked",
+                    "ip", ip,
+                    "timestamp", System.currentTimeMillis()));
         } else {
             logger.warn("Failed to unblock IP: {}", ip);
             return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Failed to unblock IP - check logs for details",
-                "ip", ip,
-                "timestamp", System.currentTimeMillis()
-            ));
+                    "success", false,
+                    "message", "Failed to unblock IP - check logs for details",
+                    "ip", ip,
+                    "timestamp", System.currentTimeMillis()));
         }
     }
 
@@ -115,23 +110,22 @@ public class MitigationController {
     @PostMapping("/block/bulk")
     public ResponseEntity<Map<String, Object>> blockMultipleIps(
             @RequestBody Map<String, Object> request) {
-        
+
         @SuppressWarnings("unchecked")
         java.util.List<String> ips = (java.util.List<String>) request.get("ips");
         String reason = (String) request.getOrDefault("reason", "Bulk block via API");
-        
+
         if (ips == null || ips.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "No IPs provided for blocking"
-            ));
+                    "success", false,
+                    "message", "No IPs provided for blocking"));
         }
-        
+
         logger.info("Bulk block request for {} IPs", ips.size());
-        
+
         int successCount = 0;
         java.util.List<String> failed = new java.util.ArrayList<>();
-        
+
         for (String ip : ips) {
             if (mitigationService.blockIp(ip, reason)) {
                 successCount++;
@@ -139,17 +133,16 @@ public class MitigationController {
                 failed.add(ip);
             }
         }
-        
+
         logger.info("Bulk block completed: {}/{} successful", successCount, ips.size());
-        
+
         return ResponseEntity.ok(Map.of(
-            "success", failed.isEmpty(),
-            "totalRequested", ips.size(),
-            "successCount", successCount,
-            "failedCount", failed.size(),
-            "failedIps", failed,
-            "timestamp", System.currentTimeMillis()
-        ));
+                "success", failed.isEmpty(),
+                "totalRequested", ips.size(),
+                "successCount", successCount,
+                "failedCount", failed.size(),
+                "failedIps", failed,
+                "timestamp", System.currentTimeMillis()));
     }
 
     /**
@@ -158,27 +151,26 @@ public class MitigationController {
     @PostMapping("/clear")
     public ResponseEntity<Map<String, Object>> clearAllBlocks() {
         logger.warn("Emergency clear all blocks requested");
-        
+
         Set<String> blockedIps = mitigationService.getBlockedIps();
         int initialCount = blockedIps.size();
         int successCount = 0;
-        
+
         for (String ip : blockedIps) {
             if (mitigationService.unblockIp(ip)) {
                 successCount++;
             }
         }
-        
+
         logger.info("Emergency clear completed: {}/{} IPs unblocked", successCount, initialCount);
-        
+
         return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Emergency clear completed",
-            "initiallyBlocked", initialCount,
-            "successfullyUnblocked", successCount,
-            "remainingBlocked", mitigationService.getBlockedIps().size(),
-            "timestamp", System.currentTimeMillis()
-        ));
+                "success", true,
+                "message", "Emergency clear completed",
+                "initiallyBlocked", initialCount,
+                "successfullyUnblocked", successCount,
+                "remainingBlocked", mitigationService.getBlockedIps().size(),
+                "timestamp", System.currentTimeMillis()));
     }
 
     /**
@@ -187,12 +179,11 @@ public class MitigationController {
     @GetMapping("/check/{ip}")
     public ResponseEntity<Map<String, Object>> checkIpStatus(@PathVariable String ip) {
         boolean isBlocked = mitigationService.getBlockedIps().contains(ip);
-        
+
         return ResponseEntity.ok(Map.of(
-            "ip", ip,
-            "isBlocked", isBlocked,
-            "status", isBlocked ? "blocked" : "allowed",
-            "timestamp", System.currentTimeMillis()
-        ));
+                "ip", ip,
+                "isBlocked", isBlocked,
+                "status", isBlocked ? "blocked" : "allowed",
+                "timestamp", System.currentTimeMillis()));
     }
 }

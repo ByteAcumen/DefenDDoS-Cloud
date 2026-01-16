@@ -1,39 +1,29 @@
-# Use official OpenJDK 21 slim image for smaller size and security
-FROM openjdk:21-slim
+# Use Eclipse Temurin JDK 21 (official OpenJDK distribution)
+FROM eclipse-temurin:21-jdk-alpine
 
 # Set metadata
 LABEL maintainer="DefenDDoS Team"
 LABEL description="DefenDDoS Backend Service - DDoS Detection and Mitigation Platform"
 LABEL version="1.0.0"
 
-# Install iptables and other required utilities
-RUN apt-get update && \
-    apt-get install -y iptables curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install curl for healthcheck (no iptables needed anymore)
+RUN apk add --no-cache curl
 
 # Create application directory
 WORKDIR /app
 
-# Create non-root user for security
-RUN groupadd -r defenddos && useradd -r -g defenddos defenddos
+# Create non-root user for security (Alpine syntax)
+RUN addgroup -S defenddos && adduser -S defenddos -G defenddos
 
 # Copy the executable JAR file to the container
 COPY target/backend-service-*.jar app.jar
 
-# Copy blocking scripts
-COPY scripts/block_ip.sh /usr/local/bin/block_ip.sh
-COPY scripts/unblock_ip.sh /usr/local/bin/unblock_ip.sh
-
 # Create logs directory and set permissions
 RUN mkdir -p /app/logs && \
-    chmod +x /usr/local/bin/block_ip.sh && \
-    chmod +x /usr/local/bin/unblock_ip.sh && \
     chown -R defenddos:defenddos /app
 
-# NOTE: Running as root is required for iptables functionality
-# In production, consider using sudo configuration or capabilities instead
-# USER defenddos
+# Use non-root user
+USER defenddos
 
 # Expose port 8080 (standard) and 8081 (configured)
 EXPOSE 8080 8081

@@ -3,7 +3,7 @@ package com.defenddos.backend_service.service;
 import com.defenddos.backend_service.model.TrafficPoint;
 import com.defenddos.backend_service.model.TrafficSummaryPoint;
 import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.WriteApiBlocking;
+import com.influxdb.client.WriteApi;
 import com.influxdb.client.QueryApi;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PreDestroy;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -21,36 +22,47 @@ import java.util.HashMap;
 public class TrafficService {
 
     private static final Logger logger = LoggerFactory.getLogger(TrafficService.class);
-    
+
     private final InfluxDBClient influxDBClient;
+    private final WriteApi writeApi;
     private final String bucket;
     private final String org;
 
     // Spring automatically provides the InfluxDBClient and property values here
     public TrafficService(InfluxDBClient influxDBClient,
-                          @Value("${defenddos.influx-db.bucket}") String bucket,
-                          @Value("${defenddos.influx-db.org}") String org) {
+            @Value("${defenddos.influx-db.bucket}") String bucket,
+            @Value("${defenddos.influx-db.org}") String org) {
         this.influxDBClient = influxDBClient;
         this.bucket = bucket;
         this.org = org;
+        this.writeApi = influxDBClient.makeWriteApi();
+    }
+
+    @PreDestroy
+    public void close() {
+        if (writeApi != null) {
+            writeApi.close();
+        }
     }
 
     public void save(TrafficPoint trafficPoint) {
-        WriteApiBlocking writeApi = influxDBClient.getWriteApiBlocking();
-        
         try {
-            // Write the data point to InfluxDB with bucket, org, and precision
+            // Write the data point to InfluxDB with bucket, org, and precision (Async)
             writeApi.writeMeasurement(bucket, org, WritePrecision.NS, trafficPoint);
-            logger.info("Successfully ingested traffic data from source IP: {}, bytes: {}, packets: {}", 
-                trafficPoint.getSourceIp(), trafficPoint.getByteCount(), trafficPoint.getPacketCount());
+
+            // In async mode, we don't get immediate confirmation of success per point,
+            // but the client handles retries and batching.
+            logger.debug("Queued traffic data from source IP: {}", trafficPoint.getSourceIp());
         } catch (Exception e) {
-            logger.error("Failed to write to InfluxDB for source IP: {}", trafficPoint.getSourceIp(), e);
-            throw e; // Re-throw to be handled by GlobalExceptionHandler
+            logger.error("Failed to queue write to InfluxDB for source IP: {}", trafficPoint.getSourceIp(), e);
+            // Don't re-throw here for async writes usually, as it breaks the flow.
+            // The client has its own error listeners, but catching creation errors is good.
         }
     }
 
     /**
      * Query traffic data from InfluxDB for analytics
+     * 
      * @param timeRange Time range for the query (e.g., "-1h", "-30m", "-5m")
      * @return List of traffic data records
      */
@@ -62,9 +74,8 @@ public class TrafficService {
 
         // Flux query to retrieve data from the specified time range
         String fluxQuery = String.format(
-            "from(bucket: \"%s\") |> range(start: %s) |> filter(fn: (r) => r._measurement == \"traffic_data\")",
-            bucket, timeRange
-        );
+                "from(bucket: \"%s\") |> range(start: %s) |> filter(fn: (r) => r._measurement == \"traffic_data\")",
+                bucket, timeRange);
 
         QueryApi queryApi = influxDBClient.getQueryApi();
         List<FluxTable> tables = queryApi.query(fluxQuery, org);
@@ -87,6 +98,7 @@ public class TrafficService {
 
     /**
      * Get traffic summary aggregated by source IP for threat analysis
+     * 
      * @param timeRange Time range for analysis
      * @return List of aggregated traffic data by IP
      */
@@ -96,14 +108,13 @@ public class TrafficService {
         }
 
         String fluxQuery = String.format(
-            "from(bucket: \"%s\") " +
-            "|> range(start: %s) " +
-            "|> filter(fn: (r) => r._measurement == \"traffic_data\" and r._field == \"packetCount\") " +
-            "|> group(columns: [\"sourceIp\"]) " +
-            "|> sum() " +
-            "|> group()",
-            bucket, timeRange
-        );
+                "from(bucket: \"%s\") " +
+                        "|> range(start: %s) " +
+                        "|> filter(fn: (r) => r._measurement == \"traffic_data\" and r._field == \"packetCount\") " +
+                        "|> group(columns: [\"sourceIp\"]) " +
+                        "|> sum() " +
+                        "|> group()",
+                bucket, timeRange);
 
         QueryApi queryApi = influxDBClient.getQueryApi();
         List<FluxTable> tables = queryApi.query(fluxQuery, org);
@@ -123,7 +134,8 @@ public class TrafficService {
 
     /**
      * Get aggregated traffic data for visualization (charts/graphs)
-     * @param timeRange Time range for analysis (e.g., "-1h", "-30m")
+     * 
+     * @param timeRange    Time range for analysis (e.g., "-1h", "-30m")
      * @param windowPeriod Aggregation window (e.g., "1m", "5m", "15m")
      * @return List of time-series data points for visualization
      */
@@ -136,13 +148,12 @@ public class TrafficService {
         }
 
         String fluxQuery = String.format(
-            "from(bucket: \"%s\")\n" +
-            "  |> range(start: %s)\n" +
-            "  |> filter(fn: (r) => r._measurement == \"traffic_data\" and r._field == \"packetCount\")\n" +
-            "  |> aggregateWindow(every: %s, fn: sum, createEmpty: true)\n" +
-            "  |> yield(name: \"sum\")",
-            bucket, timeRange, windowPeriod
-        );
+                "from(bucket: \"%s\")\n" +
+                        "  |> range(start: %s)\n" +
+                        "  |> filter(fn: (r) => r._measurement == \"traffic_data\" and r._field == \"packetCount\")\n" +
+                        "  |> aggregateWindow(every: %s, fn: sum, createEmpty: true)\n" +
+                        "  |> yield(name: \"sum\")",
+                bucket, timeRange, windowPeriod);
 
         QueryApi queryApi = influxDBClient.getQueryApi();
         List<FluxTable> tables = queryApi.query(fluxQuery, org);

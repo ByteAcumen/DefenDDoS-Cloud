@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -15,26 +15,40 @@ interface EnhancedRootLayoutProps {
   children: React.ReactNode;
 }
 
-// Create a client
-const queryClient = new QueryClient({
+// Create a client with optimized configuration
+const createQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30000, // 30 seconds
-      gcTime: 300000, // 5 minutes (formerly cacheTime)
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      refetchOnWindowFocus: true,
+      staleTime: 120000, // 2 minutes - increased from 1min
+      gcTime: 900000, // 15 minutes (formerly cacheTime) - increased from 10min
+      retry: 1, // Reduced from 1
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Capped at 10s
+      refetchOnWindowFocus: false, // Disabled to reduce API calls
       refetchOnReconnect: true,
+      refetchOnMount: true,
     },
     mutations: {
-      retry: 1,
+      retry: 1, // Reduced from 1
     },
   },
 });
 
+// Loading skeleton component
+const PageLoadingSkeleton = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Loading page...</p>
+    </div>
+  </div>
+);
+
 export function EnhancedRootLayout({ children }: EnhancedRootLayoutProps) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Memoize the query client to prevent recreation on every render
+  const queryClient = useMemo(() => createQueryClient(), []);
 
   // Pages without layout (landing, auth, etc.)
   const noLayoutPages = ['/', '/login', '/register'];
@@ -75,7 +89,9 @@ export function EnhancedRootLayout({ children }: EnhancedRootLayoutProps) {
                     }}
                     className="p-3 sm:p-4 lg:p-6 xl:p-8"
                   >
-                    {children}
+                    <Suspense fallback={<PageLoadingSkeleton />}>
+                      {children}
+                    </Suspense>
                   </motion.div>
                 </AnimatePresence>
               </main>
@@ -96,7 +112,9 @@ export function EnhancedRootLayout({ children }: EnhancedRootLayoutProps) {
                   ease: [0.4, 0, 0.2, 1]
                 }}
               >
-                {children}
+                <Suspense fallback={<PageLoadingSkeleton />}>
+                  {children}
+                </Suspense>
               </motion.div>
             </AnimatePresence>
           )}

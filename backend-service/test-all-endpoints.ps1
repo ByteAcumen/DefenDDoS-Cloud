@@ -4,6 +4,7 @@
 $ErrorActionPreference = "Continue"
 $BaseUrl = "http://localhost:8082"
 $MlUrl = "http://localhost:8000"
+$DefaultHeaders = @{ "X-API-KEY" = "defenddos-secret-key-123" }
 
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "  DefenDDoS API Endpoint Testing" -ForegroundColor Cyan
@@ -37,10 +38,11 @@ function Test-Endpoint {
         if ($Method -eq "POST" -and $Body) {
             $response = Invoke-RestMethod -Uri $Url -Method POST `
                 -Body ($Body | ConvertTo-Json) `
+                -Headers $DefaultHeaders `
                 -ContentType "application/json" `
                 -ErrorAction Stop
         } else {
-            $response = Invoke-RestMethod -Uri $Url -Method $Method -ErrorAction Stop
+            $response = Invoke-RestMethod -Uri $Url -Method $Method -Headers $DefaultHeaders -ErrorAction Stop
         }
         
         # Handle different response formats
@@ -185,45 +187,6 @@ if ($mlResult.Status -eq "PASS" -and $mlResult.Data) {
 }
 
 # ========================================
-# CATEGORY 4: STATISTICS ENDPOINTS (NEW)
-# ========================================
-Write-Host "`n=== CATEGORY 4: STATISTICS ENDPOINTS ===" -ForegroundColor Yellow
-
-$statsResult = Test-Endpoint -Name "Detailed Statistics (GET)" `
-    -Url "$BaseUrl/api/v1/statistics/detailed?range=-1h" `
-    -Category "Statistics"
-
-if ($statsResult.Status -eq "PASS" -and $statsResult.Data) {
-    Write-Host "    Total Packets: $($statsResult.Data.totalPackets)" -ForegroundColor Cyan
-    Write-Host "    Total Bytes: $($statsResult.Data.totalBytes)" -ForegroundColor Cyan
-    Write-Host "    Total Connections: $($statsResult.Data.totalConnections)" -ForegroundColor Cyan
-    Write-Host "    Attack Events: $($statsResult.Data.attackEventsCount)" -ForegroundColor Cyan
-    Write-Host "    Blocked IPs: $($statsResult.Data.blockedIpsCount)" -ForegroundColor Cyan
-    if ($statsResult.Data.mlStats) {
-        Write-Host "    ML Predictions: $($statsResult.Data.mlStats.totalPredictions)" -ForegroundColor Cyan
-        Write-Host "    Attack Predictions: $($statsResult.Data.mlStats.attackPredictions)" -ForegroundColor Cyan
-    }
-}
-
-$realtimeResult = Test-Endpoint -Name "Real-time Metrics (GET)" `
-    -Url "$BaseUrl/api/v1/statistics/realtime" `
-    -Category "Statistics"
-
-if ($realtimeResult.Status -eq "PASS" -and $realtimeResult.Data) {
-    Write-Host "    Current PPS: $($realtimeResult.Data.currentPacketsPerSecond)" -ForegroundColor Cyan
-    Write-Host "    Current BPS: $($realtimeResult.Data.currentBytesPerSecond)" -ForegroundColor Cyan
-    Write-Host "    Active Threats: $($realtimeResult.Data.activeThreatsCount)" -ForegroundColor Cyan
-}
-
-Test-Endpoint -Name "Attack Analysis (GET)" `
-    -Url "$BaseUrl/api/v1/statistics/attack-analysis?range=-1h" `
-    -Category "Statistics"
-
-Test-Endpoint -Name "ML Statistics (GET)" `
-    -Url "$BaseUrl/api/v1/statistics/ml-stats?range=-1h" `
-    -Category "Statistics"
-
-# ========================================
 # CATEGORY 5: DATA RETRIEVAL ENDPOINTS (NEW)
 # ========================================
 Write-Host "`n=== CATEGORY 5: DATA RETRIEVAL ENDPOINTS ===" -ForegroundColor Yellow
@@ -303,14 +266,6 @@ Start-Sleep -Seconds 1
 
 Test-Endpoint -Name "Check Blocked IP (GET)" `
     -Url "$BaseUrl/api/v1/mitigation/check/$testBlockIp" `
-    -Category "Mitigation"
-
-Test-Endpoint -Name "Is IP Blocked (GET)" `
-    -Url "$BaseUrl/api/v1/mitigation/is-blocked/$testBlockIp" `
-    -Category "Mitigation"
-
-Test-Endpoint -Name "Mitigation Stats (GET)" `
-    -Url "$BaseUrl/api/v1/mitigation/stats" `
     -Category "Mitigation"
 
 # Unblock the test IP

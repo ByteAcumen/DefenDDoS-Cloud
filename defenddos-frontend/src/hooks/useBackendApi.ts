@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { defenddosAPI } from '@/lib/defenddos-api';
@@ -19,11 +21,11 @@ export const QUERY_KEYS = {
   ALL_DETECTION_EVENTS: 'all-detection-events',
 } as const;
 
-// Polling intervals (ms)
+// Optimized polling intervals (ms) - Reduced frequency to improve performance
 export const POLL_INTERVALS = {
-  FAST: 5000,    // 5 seconds - for real-time data
-  MEDIUM: 15000, // 15 seconds - for dashboard data
-  SLOW: 60000,   // 60 seconds - for less critical data
+  FAST: 30000,   // 30 seconds (was 10s) - for real-time data
+  MEDIUM: 90000, // 90 seconds (was 30s) - for dashboard data
+  SLOW: 300000,  // 5 minutes (was 2min) - for less critical data
 } as const;
 
 // Health hooks - Backend health returns {status: "UP"}, ML returns {status: "healthy"}
@@ -36,10 +38,10 @@ export function useBackendHealth() {
     },
     enabled: typeof window !== 'undefined', // Only run on client side
     refetchInterval: POLL_INTERVALS.SLOW,
-    staleTime: 30000,
-    gcTime: 60000,
-    retry: 2,
-    retryDelay: 2000,
+    staleTime: 300000, // 5 minutes
+    gcTime: 1800000,   // 30 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -59,10 +61,10 @@ export function useMLHealth() {
     },
     enabled: typeof window !== 'undefined', // Only run on client side
     refetchInterval: POLL_INTERVALS.SLOW,
-    staleTime: 30000,
-    gcTime: 60000,
-    retry: 2,
-    retryDelay: 2000,
+    staleTime: 300000, // 5 minutes
+    gcTime: 1800000,   // 30 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -72,10 +74,10 @@ export function useSecurityDashboard() {
     queryKey: [QUERY_KEYS.SECURITY_DASHBOARD],
     queryFn: defenddosAPI.security.getDashboard,
     refetchInterval: POLL_INTERVALS.MEDIUM,
-    staleTime: 10000,
-    gcTime: 30000,
-    retry: 1, // Reduced retry attempts
-    retryDelay: 2000,
+    staleTime: 120000, // 2 minutes
+    gcTime: 600000,    // 10 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -84,10 +86,10 @@ export function useSecurityStatus() {
     queryKey: [QUERY_KEYS.SECURITY_STATUS],
     queryFn: defenddosAPI.security.getStatus,
     refetchInterval: POLL_INTERVALS.MEDIUM,
-    staleTime: 10000,
-    gcTime: 30000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 120000, // 2 minutes
+    gcTime: 600000,    // 10 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -97,10 +99,10 @@ export function useRealtimeMetrics(window: string = '1m') {
     queryKey: [QUERY_KEYS.REALTIME_METRICS, window],
     queryFn: () => defenddosAPI.statistics.getRealtimeMetrics(window),
     refetchInterval: POLL_INTERVALS.FAST,
-    staleTime: 2000,
-    gcTime: 10000,
-    retry: 1,
-    retryDelay: 1000,
+    staleTime: 30000,  // 30 seconds
+    gcTime: 120000,    // 2 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 2000,  // Increased from 2s
   });
 }
 
@@ -109,10 +111,10 @@ export function useDetailedStatistics(range: string = '-1h') {
     queryKey: [QUERY_KEYS.DETAILED_STATS, range],
     queryFn: () => defenddosAPI.statistics.getDetailedStatistics(range),
     refetchInterval: POLL_INTERVALS.MEDIUM,
-    staleTime: 10000,
-    gcTime: 30000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 120000, // 2 minutes
+    gcTime: 600000,    // 10 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -122,10 +124,10 @@ export function useTrafficSummary(duration: string = '1h') {
     queryKey: [QUERY_KEYS.TRAFFIC_SUMMARY, duration],
     queryFn: () => defenddosAPI.traffic.getTrafficSummary(duration),
     refetchInterval: POLL_INTERVALS.MEDIUM,
-    staleTime: 10000,
-    gcTime: 30000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 120000, // 2 minutes
+    gcTime: 600000,    // 10 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -134,11 +136,11 @@ export function useTrafficVisualization(duration: string = '1h', interval: strin
     queryKey: [QUERY_KEYS.TRAFFIC_VIZ, duration, interval],
     queryFn: () => defenddosAPI.traffic.getTrafficVisualization(duration, interval),
     enabled: enabled && typeof window !== 'undefined',
-    refetchInterval: enabled ? POLL_INTERVALS.MEDIUM : false, // Slower refresh - 15s instead of 5s
-    staleTime: 12000, // Increased stale time for better caching
-    gcTime: 30000,
-    retry: 1,
-    retryDelay: 1000,
+    refetchInterval: enabled ? POLL_INTERVALS.MEDIUM : false, // 90s instead of 30s
+    staleTime: 120000, // 2 minutes for better caching
+    gcTime: 600000,   // 10 minutes
+    retry: 1,         // Reduced from 1
+    retryDelay: 2000, // Increased from 2s
   });
 }
 
@@ -148,10 +150,10 @@ export function useBlockedIPs() {
     queryKey: [QUERY_KEYS.BLOCKED_IPS],
     queryFn: defenddosAPI.mitigation.getBlockedIPs,
     refetchInterval: POLL_INTERVALS.FAST,
-    staleTime: 5000,
-    gcTime: 15000,
-    retry: 1,
-    retryDelay: 1000,
+    staleTime: 30000,  // 30 seconds
+    gcTime: 180000,    // 3 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 2000,  // Increased from 2s
   });
 }
 
@@ -160,10 +162,10 @@ export function useMitigationStats() {
     queryKey: [QUERY_KEYS.MITIGATION_STATS],
     queryFn: defenddosAPI.mitigation.getMitigationStats,
     refetchInterval: POLL_INTERVALS.MEDIUM,
-    staleTime: 10000,
-    gcTime: 30000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 120000, // 2 minutes
+    gcTime: 600000,    // 10 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -172,10 +174,10 @@ export function useAllTrafficData(range: string = '-24h') {
   return useQuery({
     queryKey: [QUERY_KEYS.ALL_TRAFFIC, range],
     queryFn: () => defenddosAPI.data.getAllTrafficData(range),
-    staleTime: 30000,
-    gcTime: 60000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 600000, // 10 minutes
+    gcTime: 1800000,   // 30 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -185,10 +187,10 @@ export function useAllMLPredictions(range: string = '-24h', enabled: boolean = t
     queryFn: () => defenddosAPI.data.getAllMLPredictions(range),
     enabled: enabled && typeof window !== 'undefined',
     refetchInterval: enabled ? POLL_INTERVALS.MEDIUM : false,
-    staleTime: 30000,
-    gcTime: 60000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 600000, // 10 minutes
+    gcTime: 1800000,   // 30 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -198,10 +200,10 @@ export function useAllDetectionEvents(range: string = '-24h', enabled: boolean =
     queryFn: () => defenddosAPI.data.getAllDetectionEvents(range),
     enabled: enabled && typeof window !== 'undefined',
     refetchInterval: enabled ? POLL_INTERVALS.MEDIUM : false,
-    staleTime: 30000,
-    gcTime: 60000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 600000, // 10 minutes
+    gcTime: 1800000,   // 30 minutes
+    retry: 1,          // Reduced from 1
+    retryDelay: 3000,  // Increased from 3s
   });
 }
 
@@ -290,7 +292,7 @@ export function useTriggerDetection() {
   });
 }
 
-// Combined dashboard data hook
+// Combined dashboard data hook with optimized fetching
 export function useDashboardData() {
   const securityDashboard = useSecurityDashboard();
   const realtimeMetrics = useRealtimeMetrics();

@@ -5,149 +5,187 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
- * Service responsible for automated mitigation of detected threats
- * Provides IP blocking/unblocking capabilities with safety checks
+ * Service responsible for automated mitigation of detected threats.
+ * Provides IP blocking/unblocking capabilities using Redis for distributed
+ * storage.
+ * 
+ * NOTE: For Render/Cloud compatibility, this service uses Application-Layer
+ * blocking
+ * with Redis-backed storage to ensure consistency across multiple instances.
  */
 @Service
 public class MitigationService {
 
     private static final Logger logger = LoggerFactory.getLogger(MitigationService.class);
-    
+
     // IP address validation pattern (both IPv4 and basic IPv6)
     private static final Pattern IP_PATTERN = Pattern.compile(
-        "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|" +
-        "^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
-    );
-    
-    // Track blocked IPs to prevent duplicates and enable management
-    private final Set<String> blockedIps = ConcurrentHashMap.newKeySet();
-    
+            "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|" +
+                    "^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
+
+    private final RedisBlocklistService redisBlocklistService;
+    private final SecurityAuditService auditService;
+
     @Value("${defenddos.mitigation.enabled:true}")
     private boolean mitigationEnabled;
-    
-    @Value("${defenddos.mitigation.dry-run:true}")
+
+    @Value("${defenddos.mitigation.dry-run:false}")
     private boolean dryRunMode;
-    
-    @Value("${defenddos.mitigation.block-script-path:/usr/local/bin/block_ip.sh}")
-    private String blockScriptPath;
-    
-    @Value("${defenddos.mitigation.unblock-script-path:/usr/local/bin/unblock_ip.sh}")
-    private String unblockScriptPath;
-    
+
     @Value("${defenddos.mitigation.max-blocked-ips:100}")
     private int maxBlockedIps;
 
+    public MitigationService(RedisBlocklistService redisBlocklistService,
+            SecurityAuditService auditService) {
+        this.redisBlocklistService = redisBlocklistService;
+        this.auditService = auditService;
+        logger.info("MitigationService initialized with Redis-backed IP blocking");
+    }
+
     /**
-     * Block an IP address using configured mitigation strategy
+     * Validate reason string to prevent command injection
+     */
+    private boolean isValidReason(String reason) {
+        if (reason == null || reason.isEmpty()) {
+            return true; // Allow empty reasons
+        }
+
+        // Allow only safe characters: alphanumeric, spaces, basic punctuation
+        // Max length: 200 characters
+        return reason.matches("^[a-zA-Z0-9\\s\\-_.,!?()]{1,200}$");
+    }
+
+    /**
+     * Sanitize reason string
+     */
+    private String sanitizeReason(String reason) {
+        if (reason == null || reason.isEmpty()) {
+            return "No reason provided";
+        }
+
+        // Remove any potentially dangerous characters
+        String sanitized = reason.replaceAll("[^a-zA-Z0-9\\s\\-_.,!?()]", "");
+        return sanitized.substring(0, Math.min(sanitized.length(), 200));
+    }
+
+    /**
+     * Block an IP address using application-layer blocking
      */
     public boolean blockIp(String ipAddress, String reason) {
         if (!mitigationEnabled) {
             logger.info("Mitigation disabled - skipping IP block for: {}", ipAddress);
             return false;
         }
-        
+
+        String sanitizedIp = ipAddress.trim();
+
+        // Validate and sanitize reason
+        if (!isValidReason(reason)) {
+            logger.warn("Invalid reason format, sanitizing: {}", reason);
+            reason = sanitizeReason(reason);
+        }
+
         // Validate IP address format
-        if (!isValidIpAddress(ipAddress)) {
-            logger.warn("Invalid IP address format attempted for blocking: {}", ipAddress);
+        if (!isValidIpAddress(sanitizedIp)) {
+            logger.warn("Invalid IP address format attempted for blocking: {}", sanitizedIp);
             return false;
         }
-        
-        // Check if already blocked
-        if (blockedIps.contains(ipAddress)) {
-            logger.info("IP {} is already blocked", ipAddress);
+
+        // Check if already blocked (check Redis)
+        if (redisBlocklistService.isIpBlocked(sanitizedIp)) {
+            logger.info("IP {} is already blocked", sanitizedIp);
             return true;
         }
-        
+
         // Check maximum blocked IPs limit
-        if (blockedIps.size() >= maxBlockedIps) {
-            logger.warn("Maximum blocked IPs limit ({}) reached. Cannot block: {}", maxBlockedIps, ipAddress);
+        int currentBlockedCount = redisBlocklistService.getBlockedIps().size();
+        if (currentBlockedCount >= maxBlockedIps) {
+            logger.warn("Maximum blocked IPs limit ({}) reached. Cannot block: {}", maxBlockedIps, sanitizedIp);
             return false;
         }
-        
-        // Prevent blocking localhost or common safe IPs
-        if (isProtectedIp(ipAddress)) {
-            logger.warn("Attempted to block protected IP: {} - blocking prevented", ipAddress);
+
+        // Prevent blocking localhost or local IPs in dev (optional, but good safety)
+        if (isProtectedIp(sanitizedIp)) {
+            logger.warn("Attempted to block protected IP: {} - blocking prevented", sanitizedIp);
             return false;
         }
-        
-        try {
-            if (dryRunMode) {
-                logger.info("[DRY RUN] Would block IP: {} for reason: {}", ipAddress, reason);
-                simulateBlock(ipAddress);
-            } else {
-                logger.info("Blocking IP: {} for reason: {}", ipAddress, reason);
-                executeBlockCommand(ipAddress);
-            }
-            
-            blockedIps.add(ipAddress);
-            logger.info("Successfully blocked IP: {}. Total blocked IPs: {}", ipAddress, blockedIps.size());
+
+        if (dryRunMode) {
+            logger.info("[DRY RUN] Would block IP: {} for reason: {}", sanitizedIp, reason);
             return true;
-            
-        } catch (Exception e) {
-            logger.error("Failed to block IP: {} - {}", ipAddress, e.getMessage(), e);
-            return false;
         }
+
+        // Action: Add to Redis
+        boolean success = redisBlocklistService.blockIp(sanitizedIp, reason);
+
+        if (success) {
+            auditService.logIpBlocked(sanitizedIp, reason, "MitigationService");
+            logger.info("BLOCKED IP in Redis: {} for reason: {}", sanitizedIp, reason);
+        } else {
+            logger.error("Failed to block IP in Redis: {}", sanitizedIp);
+        }
+
+        return success;
     }
 
     /**
      * Unblock an IP address
      */
     public boolean unblockIp(String ipAddress) {
-        if (!isValidIpAddress(ipAddress)) {
-            logger.warn("Invalid IP address format for unblocking: {}", ipAddress);
+        String sanitizedIp = ipAddress.trim();
+
+        if (!isValidIpAddress(sanitizedIp)) {
+            logger.warn("Invalid IP address format for unblocking: {}", sanitizedIp);
             return false;
         }
-        
-        if (!blockedIps.contains(ipAddress)) {
-            logger.info("IP {} is not currently blocked", ipAddress);
+
+        if (dryRunMode) {
+            logger.info("[DRY RUN] Would unblock IP: {}", sanitizedIp);
             return true;
         }
-        
-        try {
-            if (dryRunMode) {
-                logger.info("[DRY RUN] Would unblock IP: {}", ipAddress);
-            } else {
-                logger.info("Unblocking IP: {}", ipAddress);
-                executeUnblockCommand(ipAddress);
-            }
-            
-            blockedIps.remove(ipAddress);
-            logger.info("Successfully unblocked IP: {}. Total blocked IPs: {}", ipAddress, blockedIps.size());
-            return true;
-            
-        } catch (Exception e) {
-            logger.error("Failed to unblock IP: {} - {}", ipAddress, e.getMessage(), e);
-            return false;
+
+        boolean success = redisBlocklistService.unblockIp(sanitizedIp);
+
+        if (success) {
+            auditService.logIpUnblocked(sanitizedIp, "MitigationService");
+            logger.info("UNBLOCKED IP from Redis: {}", sanitizedIp);
         }
+
+        return success;
     }
 
     /**
-     * Get set of currently blocked IPs
+     * Check if an IP is blocked.
+     * Used by IpBlockingFilter to reject requests.
+     */
+    public boolean isIpBlocked(String ipAddress) {
+        if (dryRunMode || ipAddress == null) {
+            return false;
+        }
+        return redisBlocklistService.isIpBlocked(ipAddress.trim());
+    }
+
+    /**
+     * Get set of currently blocked IPs from Redis
      */
     public Set<String> getBlockedIps() {
-        return Set.copyOf(blockedIps);
+        return redisBlocklistService.getBlockedIps();
     }
 
     /**
      * Get mitigation status information
      */
     public MitigationStatus getStatus() {
+        int blockedCount = redisBlocklistService.getBlockedIps().size();
         return new MitigationStatus(
-            mitigationEnabled,
-            dryRunMode,
-            blockedIps.size(),
-            maxBlockedIps,
-            blockScriptPath,
-            unblockScriptPath
-        );
+                mitigationEnabled,
+                dryRunMode,
+                blockedCount,
+                maxBlockedIps);
     }
 
     /**
@@ -161,81 +199,9 @@ public class MitigationService {
      * Check if IP should be protected from blocking
      */
     private boolean isProtectedIp(String ip) {
-        // Protect localhost, local network, and common safe ranges
-        return ip.equals("127.0.0.1") || 
-               ip.equals("::1") ||
-               ip.startsWith("192.168.") ||
-               ip.startsWith("10.") ||
-               ip.startsWith("172.16.") ||
-               ip.equals("0.0.0.0");
-    }
-
-    /**
-     * Execute the actual block command
-     */
-    private void executeBlockCommand(String ipAddress) throws IOException, InterruptedException {
-        String[] command = {blockScriptPath, ipAddress};
-        Process process = new ProcessBuilder(command)
-            .redirectErrorStream(true)
-            .start();
-        
-        // Capture output for logging
-        String output = captureProcessOutput(process);
-        int exitCode = process.waitFor();
-        
-        if (exitCode == 0) {
-            logger.debug("Block command executed successfully for IP: {}. Output: {}", ipAddress, output);
-        } else {
-            throw new RuntimeException("Block command failed with exit code: " + exitCode + ". Output: " + output);
-        }
-    }
-
-    /**
-     * Execute the unblock command
-     */
-    private void executeUnblockCommand(String ipAddress) throws IOException, InterruptedException {
-        String[] command = {unblockScriptPath, ipAddress};
-        Process process = new ProcessBuilder(command)
-            .redirectErrorStream(true)
-            .start();
-        
-        String output = captureProcessOutput(process);
-        int exitCode = process.waitFor();
-        
-        if (exitCode == 0) {
-            logger.debug("Unblock command executed successfully for IP: {}. Output: {}", ipAddress, output);
-        } else {
-            throw new RuntimeException("Unblock command failed with exit code: " + exitCode + ". Output: " + output);
-        }
-    }
-
-    /**
-     * Simulate blocking for dry-run mode
-     */
-    private void simulateBlock(String ipAddress) {
-        // In dry-run mode, just log what would happen
-        logger.info("[SIMULATION] iptables -A INPUT -s {} -j DROP", ipAddress);
-        
-        // Add a small delay to simulate command execution
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * Capture process output for logging
-     */
-    private String captureProcessOutput(Process process) throws IOException {
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-        }
-        return output.toString().trim();
+        return ip.equals("127.0.0.1") ||
+                ip.equals("::1") ||
+                ip.equals("0.0.0.0");
     }
 
     /**
@@ -246,25 +212,28 @@ public class MitigationService {
         private final boolean dryRunMode;
         private final int blockedCount;
         private final int maxBlockedIps;
-        private final String blockScriptPath;
-        private final String unblockScriptPath;
 
-        public MitigationStatus(boolean enabled, boolean dryRunMode, int blockedCount, 
-                              int maxBlockedIps, String blockScriptPath, String unblockScriptPath) {
+        public MitigationStatus(boolean enabled, boolean dryRunMode, int blockedCount, int maxBlockedIps) {
             this.enabled = enabled;
             this.dryRunMode = dryRunMode;
             this.blockedCount = blockedCount;
             this.maxBlockedIps = maxBlockedIps;
-            this.blockScriptPath = blockScriptPath;
-            this.unblockScriptPath = unblockScriptPath;
         }
 
-        // Getters
-        public boolean isEnabled() { return enabled; }
-        public boolean isDryRunMode() { return dryRunMode; }
-        public int getBlockedCount() { return blockedCount; }
-        public int getMaxBlockedIps() { return maxBlockedIps; }
-        public String getBlockScriptPath() { return blockScriptPath; }
-        public String getUnblockScriptPath() { return unblockScriptPath; }
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public boolean isDryRunMode() {
+            return dryRunMode;
+        }
+
+        public int getBlockedCount() {
+            return blockedCount;
+        }
+
+        public int getMaxBlockedIps() {
+            return maxBlockedIps;
+        }
     }
 }
