@@ -116,5 +116,33 @@ application-prod.properties
 backend-service/test-data/*.csv
 backend-service/test-data/*.json
 
-# Attack simulation reports
+# Attack simulation reports and test results
 attack-simulation-report-*.json
+test-results-*.json
+
+# MCP setup files (temporary)
+GLOBAL_MCP_*.txt
+GLOBAL_MCP_*.ps1
+MCP_SETUP_GUIDE.md
+
+# Planning documents (if regenerated)
+*_IMPROVEMENT_PLAN.md
+*_ENHANCEMENT_PLAN.md
+DEPLOYMENT_STATUS.md
+*_SUMMARY.md
+
+# Sensitive information
+*.env
+*.env.local
+.env.*
+**/settings.json
+github_pat_*
+*_token.txt
+*_key.txt
+credentials.json
+
+# Test data and reports  
+test-results/
+*.test.json
+coverage/
+.nyc_output/

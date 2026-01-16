@@ -2,9 +2,9 @@
 # Tests ALL endpoints with detailed verification
 
 $ErrorActionPreference = "Continue"
-$BaseUrl = "http://localhost:8082"
+$BaseUrl = "http://localhost:8081"
 $MlUrl = "http://localhost:8000"
-$DefaultHeaders = @{ "X-API-KEY" = "defenddos-secret-key-123" }
+$DefaultHeaders = @{ "X-API-KEY" = "defenddos-api-key" }
 
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "  DefenDDoS API Endpoint Testing" -ForegroundColor Cyan
