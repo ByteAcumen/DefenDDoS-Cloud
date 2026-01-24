@@ -1,10 +1,11 @@
 'use client';
 
-import { HTMLAttributes, forwardRef } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/utils';
+import { HTMLAttributes, forwardRef, ReactNode } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends HTMLMotionProps<'div'> {
+  children?: ReactNode;
   variant?: 'default' | 'elevated' | 'outlined' | 'ghost';
   animated?: boolean;
   hover?: boolean;
@@ -58,22 +59,23 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       shadow-glow animate-pulse-glow
     ` : '';
 
-    const CardComponent = animated ? motion.div : 'div';
+    // Hover effects now handled by framer-motion for smoother animations
+
 
     const animationProps = animated ? {
       initial: { opacity: 0, y: 20 },
       animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.4, ease: 'easeOut' },
-      whileHover: hover ? { 
-        y: -4, 
+      transition: { duration: 0.4, ease: 'easeOut' } as any,
+      whileHover: hover ? {
+        y: -4,
         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08)',
         borderColor: 'rgba(156, 163, 175, 0.5)',
-        transition: { type: 'spring', stiffness: 400, damping: 25 }
+        transition: { type: 'spring', stiffness: 400, damping: 25 } as any
       } : undefined,
     } : {};
 
     return (
-      <CardComponent
+      <motion.div
         ref={ref}
         className={cn(
           baseClasses,
@@ -86,7 +88,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
         {...props}
       >
         {children}
-      </CardComponent>
+      </motion.div>
     );
   }
 );

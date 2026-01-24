@@ -1,10 +1,11 @@
 'use client';
 
-import { ButtonHTMLAttributes, forwardRef } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/utils';
+import { ButtonHTMLAttributes, forwardRef, ReactNode } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends HTMLMotionProps<'button'> {
+  children?: ReactNode;
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   isLoading?: boolean;
@@ -88,16 +89,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       xl: 'w-6 h-6',
     };
 
-    const ButtonComponent = animated ? motion.button : 'button';
-
     const animationProps = animated ? {
       whileHover: { scale: 1.02 },
       whileTap: { scale: 0.98 },
-      transition: { type: 'spring', stiffness: 500, damping: 25, mass: 0.5 },
+      transition: { type: 'spring', stiffness: 500, damping: 25, mass: 0.5 } as any,
     } : {};
 
     return (
-      <ButtonComponent
+      <motion.button
         ref={ref}
         className={cn(
           baseClasses,
@@ -130,7 +129,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             </span>
           )}
         </div>
-      </ButtonComponent>
+      </motion.button>
     );
   }
 );

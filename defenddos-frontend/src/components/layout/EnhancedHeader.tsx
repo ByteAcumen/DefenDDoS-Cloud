@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Bell, 
-  User, 
-  Settings, 
-  LogOut, 
+import {
+  Search,
+  Bell,
+  User,
+  Settings,
+  LogOut,
   ChevronDown,
   Shield,
   Activity,
@@ -142,8 +142,8 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
   }, []);
 
   // Memoize unread count calculation
-  const unreadCount = useMemo(() => 
-    notifications.filter(n => !n.read).length, 
+  const unreadCount = useMemo(() =>
+    notifications.filter(n => !n.read).length,
     [notifications]
   );
 
@@ -166,11 +166,10 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-      className={`fixed top-0 left-0 right-0 z-50 bg-card/98 backdrop-blur-xl border-b transition-all duration-200 ${
-        isScrolled 
-          ? 'border-border/60 shadow-lg shadow-primary/5' 
-          : 'border-border/30 shadow-sm'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 bg-card/98 backdrop-blur-xl border-b transition-all duration-200 ${isScrolled
+        ? 'border-border/60 shadow-lg shadow-primary/5'
+        : 'border-border/30 shadow-sm'
+        }`}
     >
       <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-full">
@@ -196,14 +195,14 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
 
             {/* Logo & Title */}
             <Link href="/dashboard" className="flex items-center gap-2 sm:gap-2.5 group">
-              <motion.div 
+              <motion.div
                 className="relative p-2 sm:p-2.5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg sm:rounded-xl border border-primary/10"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               >
                 <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                <motion.div 
+                <motion.div
                   className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full border-2 border-card shadow-sm"
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -246,7 +245,7 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
           {/* Right Section: Status & Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* System Status Indicators */}
-            <motion.div 
+            <motion.div
               className="hidden xl:flex items-center gap-2 sm:gap-2.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-muted/50 rounded-lg border border-border/50"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
@@ -306,11 +305,10 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
                             setTheme(themeOption as 'light' | 'dark' | 'system');
                             setShowThemeMenu(false);
                           }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 ${
-                            theme === themeOption
-                              ? 'bg-primary text-primary-foreground'
-                              : 'hover:bg-muted text-foreground'
-                          }`}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 ${theme === themeOption
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-muted text-foreground'
+                            }`}
                         >
                           {themeOption === 'light' && <Sun className="w-4 h-4" />}
                           {themeOption === 'dark' && <Moon className="w-4 h-4" />}
@@ -381,9 +379,8 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
                           <motion.div
                             key={notification.id}
                             whileHover={{ scale: 1.01 }}
-                            className={`p-4 border-b border-border cursor-pointer transition-colors hover:bg-secondary/50 ${
-                              !notification.read ? 'bg-secondary/30' : ''
-                            }`}
+                            className={`p-4 border-b border-border cursor-pointer transition-colors hover:bg-secondary/50 ${!notification.read ? 'bg-secondary/30' : ''
+                              }`}
                           >
                             <div className="flex items-start gap-3">
                               <span className="text-2xl">
@@ -410,12 +407,11 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
                       )}
                     </div>
                     <div className="p-3 border-t border-border bg-secondary/30">
-                      <Link
-                        href="/notifications"
-                        className="block text-center text-sm text-primary hover:text-primary-600 transition-colors"
+                      <button
+                        className="block w-full text-center text-sm text-primary hover:text-primary-600 transition-colors"
                       >
                         View all notifications →
-                      </Link>
+                      </button>
                     </div>
                   </motion.div>
                 )}
@@ -457,25 +453,23 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
                     </div>
                     <div className="p-2">
                       <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-                        <Link
-                          href="/admin"
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-all duration-200"
+                        <button
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-all duration-200 w-full text-left"
                         >
                           <User className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm text-foreground font-medium">Profile</span>
-                        </Link>
+                        </button>
                       </motion.div>
                       <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-                        <Link
-                          href="/system"
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-all duration-200"
+                        <button
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-all duration-200 w-full text-left"
                         >
                           <Settings className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm text-foreground font-medium">Settings</span>
-                        </Link>
+                        </button>
                       </motion.div>
                       <div className="my-2 h-px bg-border" />
-                      <motion.button 
+                      <motion.button
                         whileHover={{ x: 4 }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-900/20 transition-all duration-200 text-red-400"
                       >

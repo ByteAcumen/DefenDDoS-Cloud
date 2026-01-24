@@ -2,7 +2,7 @@
 
 import { HTMLAttributes } from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '@/utils';
+import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps extends HTMLAttributes<HTMLDivElement> {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -197,11 +197,11 @@ export function LoadingSpinner({
 }
 
 // Skeleton loader for cards and content
-export function SkeletonLoader({ 
-  className, 
+export function SkeletonLoader({
+  className,
   lines = 3,
-  ...props 
-}: { 
+  ...props
+}: {
   className?: string;
   lines?: number;
 } & HTMLAttributes<HTMLDivElement>) {
@@ -221,10 +221,10 @@ export function SkeletonLoader({
 }
 
 // Global loading overlay
-export function LoadingOverlay({ 
-  isVisible, 
+export function LoadingOverlay({
+  isVisible,
   text = 'Loading...',
-  variant = 'cyber' 
+  variant = 'cyber'
 }: {
   isVisible: boolean;
   text?: string;

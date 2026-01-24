@@ -137,16 +137,16 @@ export function generateId(length: number = 8): string {
 // Animation variants for Framer Motion - Simplified for better performance
 export const fadeIn = {
   hidden: { opacity: 0, y: 5 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.2,
       ease: "easeOut"
     }
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     y: 5,
     transition: {
       duration: 0.15,
@@ -252,20 +252,41 @@ export function sleep(ms: number): Promise<void> {
 /**
  * Get severity color for threat levels
  */
-export function getSeverityColor(severity: string): string {
+/**
+ * Get severity color for threat levels
+ */
+export function getSeverityColor(severity: string) {
   switch (severity.toLowerCase()) {
     case 'critical':
-      return 'text-red-600 bg-red-50 border-red-200';
+      return { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800', indicator: 'bg-red-500' };
     case 'high':
-      return 'text-red-500 bg-red-50 border-red-200';
+      return { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-800', indicator: 'bg-orange-500' };
     case 'medium':
-      return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      return { bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-800', indicator: 'bg-yellow-500' };
     case 'low':
-      return 'text-blue-600 bg-blue-50 border-blue-200';
+      return { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-800', indicator: 'bg-blue-500' };
     case 'normal':
-      return 'text-green-600 bg-green-50 border-green-200';
+      return { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-700 dark:text-green-300', border: 'border-green-200 dark:border-green-800', indicator: 'bg-green-500' };
     default:
-      return 'text-gray-600 bg-gray-50 border-gray-200';
+      return { bg: 'bg-gray-50 dark:bg-gray-800/50', text: 'text-gray-700 dark:text-gray-300', border: 'border-gray-200 dark:border-gray-700', indicator: 'bg-gray-500' };
+  }
+}
+
+export function getStatusColor(status: string) {
+  switch (status.toLowerCase()) {
+    case 'active':
+    case 'online':
+    case 'operational':
+      return { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-700 dark:text-green-300', border: 'border-green-200 dark:border-green-800', indicator: 'bg-green-500' };
+    case 'inactive':
+    case 'offline':
+    case 'down':
+      return { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800', indicator: 'bg-red-500' };
+    case 'warning':
+    case 'degraded':
+      return { bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-800', indicator: 'bg-yellow-500' };
+    default:
+      return { bg: 'bg-gray-50 dark:bg-gray-800/50', text: 'text-gray-700 dark:text-gray-300', border: 'border-gray-200 dark:border-gray-700', indicator: 'bg-gray-500' };
   }
 }
 
@@ -281,21 +302,21 @@ export function capitalize(str: string): string {
  */
 export function deepEqual(obj1: any, obj2: any): boolean {
   if (obj1 === obj2) return true;
-  
+
   if (obj1 == null || obj2 == null) return false;
-  
+
   if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
-  
+
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
-  
+
   if (keys1.length !== keys2.length) return false;
-  
+
   for (const key of keys1) {
     if (!keys2.includes(key)) return false;
     if (!deepEqual(obj1[key], obj2[key])) return false;
   }
-  
+
   return true;
 }
 
@@ -304,19 +325,55 @@ export function deepEqual(obj1: any, obj2: any): boolean {
  */
 export function shallowEqual(obj1: any, obj2: any): boolean {
   if (obj1 === obj2) return true;
-  
+
   if (obj1 == null || obj2 == null) return false;
-  
+
   if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
-  
+
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
-  
+
   if (keys1.length !== keys2.length) return false;
-  
+
   for (const key of keys1) {
     if (obj1[key] !== obj2[key]) return false;
   }
-  
+
   return true;
+}
+
+/**
+ * Calculate percentage change between two numbers
+ */
+export function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) return current === 0 ? 0 : 100;
+  return ((current - previous) / previous) * 100;
+}
+
+/**
+ * Trigger haptic feedback if available
+ */
+export function hapticFeedback(type: 'success' | 'warning' | 'error' | 'light' | 'medium' | 'heavy' = 'light') {
+  if (typeof window === 'undefined' || !window.navigator?.vibrate) return;
+
+  switch (type) {
+    case 'success':
+      window.navigator.vibrate([10, 30, 10]);
+      break;
+    case 'warning':
+      window.navigator.vibrate([30, 50, 10]);
+      break;
+    case 'error':
+      window.navigator.vibrate([50, 100, 50, 100]);
+      break;
+    case 'light':
+      window.navigator.vibrate(10);
+      break;
+    case 'medium':
+      window.navigator.vibrate(30);
+      break;
+    case 'heavy':
+      window.navigator.vibrate(50);
+      break;
+  }
 }

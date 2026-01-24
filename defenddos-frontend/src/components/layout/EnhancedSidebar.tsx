@@ -73,12 +73,6 @@ const navGroups: NavGroup[] = [
         badge: '12',
         description: 'IP blacklist'
       },
-      {
-        name: 'Traffic Monitor',
-        href: '/traffic',
-        icon: Activity,
-        description: 'Network traffic'
-      },
     ]
   },
   {
@@ -118,10 +112,10 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
     const checkDesktop = () => {
       setIsDesktop(window.innerWidth >= 1024);
     };
-    
+
     // Check on mount
     checkDesktop();
-    
+
     // Add resize listener
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
@@ -159,9 +153,9 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
           width: isDesktop && isCollapsed ? '80px' : '280px',
           x: (isDesktop || isOpen) ? 0 : -300
         }}
-        transition={{ 
-          type: 'spring', 
-          stiffness: 500, 
+        transition={{
+          type: 'spring',
+          stiffness: 500,
           damping: 35
         }}
         className="fixed top-14 sm:top-16 left-0 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] bg-card/98 backdrop-blur-xl border-r border-border/60 shadow-lg shadow-primary/5 z-50 lg:z-30 flex flex-col overflow-hidden"
@@ -169,7 +163,7 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
         {/* Navigation Content - Scrollable Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {/* Collapse Toggle Section */}
-          <motion.div 
+          <motion.div
             className="hidden lg:flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-border/60 bg-muted/50 sticky top-0 z-10 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -209,11 +203,11 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
           <div className="p-2 sm:p-3 space-y-4 sm:space-y-5">
             <nav className="space-y-4 sm:space-y-5">
               {navGroups.map((group, groupIndex) => (
-                <motion.div 
+                <motion.div
                   key={group.title}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
+                  transition={{
                     delay: groupIndex * 0.03,
                     duration: 0.15,
                     ease: [0.4, 0, 0.2, 1]
@@ -221,7 +215,7 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
                 >
                   <AnimatePresence>
                     {!isCollapsed && (
-                      <motion.h3 
+                      <motion.h3
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -242,7 +236,7 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
                           key={item.href}
                           initial={{ opacity: 0, x: -6 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ 
+                          transition={{
                             delay: (groupIndex * 0.03) + (itemIndex * 0.015),
                             duration: 0.15,
                             ease: [0.4, 0, 0.2, 1]
@@ -271,7 +265,7 @@ export default function EnhancedSidebar({ isOpen, onClose }: { isOpen: boolean; 
                             {/* Label & Description */}
                             <AnimatePresence>
                               {!isCollapsed && (
-                                <motion.div 
+                                <motion.div
                                   initial={{ opacity: 0, x: -5 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   exit={{ opacity: 0, x: -5 }}

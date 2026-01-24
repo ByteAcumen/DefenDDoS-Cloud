@@ -83,12 +83,12 @@ export interface MLPredictionResponse {
   threatLevel: number; // 1-5 scale
   sourceIp?: string;
   analysisTimestamp?: string;
-  
+
   // Additional fields from backend enhancement
   rf_confidence?: number; // Random Forest confidence
   lstm_anomaly_score?: number; // LSTM anomaly detection score
   confidence_percentage?: number; // 0-100 for UI display
-  
+
   // Legacy support (optional)
   is_attack?: boolean;
   attack_type?: string;
@@ -239,16 +239,13 @@ export interface TrafficQueryParams {
   to?: string; // ISO datetime
   limit?: number;
   range?: string; // -5m, -1h, -24h, -7d
-  
+
   // For /traffic/summary
   duration?: string; // 1h, 24h, etc.
   groupBy?: 'ip' | 'sourceIp' | 'destinationIp';
-  
-  // For /traffic/visualization
-  interval?: string; // 5m, 1h, etc.
-  metric?: 'packetCount' | 'byteCount';
-  duration?: string;
-  interval?: string;
+
+
+
 }
 
 export interface PaginationParams {

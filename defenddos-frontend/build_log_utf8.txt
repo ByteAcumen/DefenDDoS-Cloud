@@ -1,0 +1,3 @@
+﻿src/app/blocked-ips/page.tsx(74,33): error TS2322: Type '"destructive"' is not assignable to type '"success" | "secondary" | "danger" | "outline" | "primary" | "ghost" | undefined'.
+src/app/system/page.tsx(34,21): error TS2322: Type '"text"' is not assignable to type '"number" | "percentage" | "bytes" | "currency" | undefined'.
+src/components/analytics/TrafficCharts.tsx(138,47): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.

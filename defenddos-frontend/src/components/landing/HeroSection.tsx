@@ -114,12 +114,7 @@ export function HeroSection() {
                                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </Link>
 
-                            <Link
-                                href="/api-test"
-                                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-300 border border-slate-700 rounded-xl transition-all duration-300 hover:bg-slate-800 hover:border-slate-600 hover:text-white"
-                            >
-                                Try API Playground
-                            </Link>
+
                         </motion.div>
 
                         {/* Stats */}

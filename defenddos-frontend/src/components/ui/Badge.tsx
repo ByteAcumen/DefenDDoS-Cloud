@@ -1,10 +1,11 @@
 'use client';
 
-import { HTMLAttributes, forwardRef } from 'react';
-import { motion } from 'framer-motion';
-import { cn, getSeverityColor, getStatusColor } from '@/utils';
+import { HTMLAttributes, forwardRef, ReactNode } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
+import { cn, getSeverityColor, getStatusColor } from '@/lib/utils';
 
-interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+interface BadgeProps extends HTMLMotionProps<'span'> {
+  children?: ReactNode;
   variant?: 'default' | 'secondary' | 'success' | 'warning' | 'danger' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   severity?: 'normal' | 'low' | 'medium' | 'high' | 'critical';
@@ -66,22 +67,19 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
     }
 
     const pulseClasses = pulse ? 'animate-pulse' : '';
-    
-    // Filter out custom props before passing to DOM
-    const { severity: _severity, status: _status, animated: _animated, pulse: _pulse, icon: _icon, ...domProps } = props;
-    const glowClasses = severity === 'critical' ? 'shadow-threat-glow' : '';
 
-    const BadgeComponent = animated ? motion.span : 'span';
+    // Filter out custom props before passing to DOM
+    const glowClasses = severity === 'critical' ? 'shadow-threat-glow' : '';
 
     const animationProps = animated ? {
       initial: { scale: 0.8, opacity: 0 },
       animate: { scale: 1, opacity: 1 },
-      transition: { duration: 0.2 },
+      transition: { duration: 0.2 } as any,
       whileHover: { scale: 1.05 },
     } : {};
 
     return (
-      <BadgeComponent
+      <motion.span
         ref={ref}
         className={cn(
           baseClasses,
@@ -92,7 +90,7 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
           className
         )}
         {...animationProps}
-        {...domProps}
+        {...props}
       >
         {/* Severity/Status indicator dot */}
         {(severity || status) && (
@@ -105,16 +103,16 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
             transition={pulse ? { duration: 2, repeat: Infinity } : {}}
           />
         )}
-        
+
         {/* Custom icon */}
         {icon && (
           <span className={iconSizes[size]}>
             {icon}
           </span>
         )}
-        
+
         <span>{children}</span>
-      </BadgeComponent>
+      </motion.span>
     );
   }
 );

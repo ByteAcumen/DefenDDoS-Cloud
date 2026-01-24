@@ -22,7 +22,6 @@ export function useSmoothScroll(options: SmoothScrollOptions = {}) {
       easing: options.easing ?? ((t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))),
       orientation: options.orientation ?? 'vertical',
       smoothWheel: options.smoothWheel ?? true,
-      smoothTouch: options.smoothTouch ?? false, // Disable on mobile for better performance
     });
 
     function raf(time: number) {

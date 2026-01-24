@@ -2,13 +2,14 @@
 
 import { HTMLAttributes } from 'react';
 import { motion } from 'framer-motion';
+import { HTMLMotionProps } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { cn, formatNumber, calculatePercentageChange } from '@/utils';
+import { cn, formatNumber, calculatePercentageChange } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import CountUp from 'react-countup';
 
-interface KPICardProps extends HTMLAttributes<HTMLDivElement> {
+interface KPICardProps extends HTMLMotionProps<'div'> {
   title: string;
   value: number | string;
   previousValue?: number;
@@ -78,7 +79,7 @@ export function KPICard({
 
   const formatValue = (val: number | string) => {
     if (typeof val === 'string') return val;
-    
+
     switch (format) {
       case 'percentage':
         return `${val.toFixed(1)}%`;
@@ -101,16 +102,16 @@ export function KPICard({
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.5, ease: 'easeOut' }
     },
-    hover: { 
+    hover: {
       y: -4,
       transition: { duration: 0.2 }
     }
-  };
+  } as any;
 
   if (isLoading) {
     return (
@@ -138,7 +139,7 @@ export function KPICard({
       className={className}
       {...props}
     >
-      <Card 
+      <Card
         className={cn(
           'border-l-4 relative overflow-hidden',
           severity ? severityColors[severity] : 'border-l-primary-500',
@@ -153,7 +154,7 @@ export function KPICard({
               {title}
             </h3>
             {icon && (
-              <motion.div 
+              <motion.div
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
                 whileHover={animated ? { rotate: 5 } : undefined}
                 transition={{ duration: 0.2 }}
@@ -167,7 +168,7 @@ export function KPICard({
 
           {/* Main Value */}
           <div className="mb-4">
-            <motion.div 
+            <motion.div
               className="text-3xl font-bold text-gray-900 dark:text-gray-100"
               initial={animated ? { scale: 1.2, opacity: 0 } : false}
               animate={animated ? { scale: 1, opacity: 1 } : false}
@@ -197,7 +198,7 @@ export function KPICard({
             <div className="flex items-center gap-3">
               {/* Trend Indicator */}
               {(calculatedTrend !== 'neutral' || calculatedTrendValue > 0) && (
-                <motion.div 
+                <motion.div
                   className={cn('flex items-center gap-1', getTrendColor())}
                   initial={animated ? { x: -10, opacity: 0 } : false}
                   animate={animated ? { x: 0, opacity: 1 } : false}
@@ -212,7 +213,7 @@ export function KPICard({
 
               {/* Severity Badge */}
               {severity && severity !== 'normal' && (
-                <Badge 
+                <Badge
                   severity={severity}
                   size="sm"
                   {...(severity === 'critical' && { pulse: true })}
@@ -235,7 +236,7 @@ export function KPICard({
 
           {/* Sparkline Chart */}
           {sparklineData && sparklineData.length > 0 && (
-            <motion.div 
+            <motion.div
               className="mt-4 h-12"
               initial={animated ? { opacity: 0 } : false}
               animate={animated ? { opacity: 1 } : false}
@@ -243,7 +244,7 @@ export function KPICard({
             >
               <svg className="w-full h-full" viewBox={`0 0 ${sparklineData.length * 10} 100`}>
                 <motion.path
-                  d={`M ${sparklineData.map((point, index) => 
+                  d={`M ${sparklineData.map((point, index) =>
                     `${index * 10},${100 - (point / Math.max(...sparklineData)) * 80}`
                   ).join(' L ')}`}
                   fill="none"
@@ -252,8 +253,8 @@ export function KPICard({
                   className={cn(
                     'opacity-60',
                     calculatedTrend === 'up' ? 'text-green-500' :
-                    calculatedTrend === 'down' ? 'text-red-500' :
-                    'text-gray-500'
+                      calculatedTrend === 'down' ? 'text-red-500' :
+                        'text-gray-500'
                   )}
                   initial={animated ? { pathLength: 0, opacity: 0 } : false}
                   animate={animated ? { pathLength: 1, opacity: 0.6 } : false}
