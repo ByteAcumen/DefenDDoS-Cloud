@@ -16,8 +16,8 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
     useEffect(() => {
         // Initialize Lenis smooth scroll with optimized settings
         const lenis = new Lenis({
-            duration: 1.0,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            duration: 1.2,
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential easing
             orientation: 'vertical',
             gestureOrientation: 'vertical',
             smoothWheel: true,

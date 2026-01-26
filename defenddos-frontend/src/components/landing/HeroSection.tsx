@@ -29,6 +29,7 @@ const trustedBy = [
 const FloatingOrb = ({ className, delay = 0 }: { className: string; delay?: number }) => (
     <motion.div
         className={`absolute rounded-full blur-3xl ${className}`}
+        style={{ willChange: 'transform' }}
         animate={{
             y: [0, -30, 0],
             x: [0, 15, 0],
@@ -85,7 +86,7 @@ export function HeroSection() {
                 <div className="flex flex-col lg:flex-row gap-16 lg:gap-20 items-center">
                     {/* Left Content */}
                     <motion.div
-                        style={{ y: yText, opacity: opacityText }}
+                        style={{ y: yText, opacity: opacityText, willChange: 'transform, opacity' }}
                         className="flex-1 max-w-2xl text-center lg:text-left z-20"
                     >
                         {/* Badge */}
@@ -172,7 +173,7 @@ export function HeroSection() {
 
                     {/* Right Content - Visual Element */}
                     <motion.div
-                        style={{ scale: scaleGlobe }}
+                        style={{ scale: scaleGlobe, willChange: 'transform' }}
                         className="relative flex-1 w-full max-w-xl lg:max-w-none"
                     >
                         {/* Glow behind globe */}

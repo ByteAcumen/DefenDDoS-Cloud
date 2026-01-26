@@ -13,6 +13,7 @@ const apiClient = axios.create({
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+    'X-API-KEY': 'defenddos-api-key',
   },
 });
 
@@ -200,7 +201,7 @@ interface MLConnectionHealth extends ApiResponse<{
   status: string;
   ml_service_status: string;
   ml_models_loaded: boolean;
-}> {}
+}> { }
 
 // Actuator types
 interface MetricsResponse {
@@ -247,11 +248,11 @@ apiClient.interceptors.response.use(
         status: error.response?.status,
         message: error.message,
       };
-      
+
       // Only log if we have useful information
       if (error.response?.status) {
         console.error(`🚨 API Error [${errorInfo.method} ${errorInfo.url}]: ${errorInfo.status} - ${error.response?.statusText || error.message}`);
-        
+
         // Log response data if available and meaningful
         if (error.response?.data && typeof error.response.data === 'object' && Object.keys(error.response.data).length > 0) {
           console.error('Response:', error.response.data);
@@ -308,27 +309,27 @@ export const checkBackendHealth = async (): Promise<boolean> => {
 // Traffic API Services
 export const trafficApi = {
   // POST /api/v1/traffic/ingest
-  ingestTraffic: (trafficPoint: any) => 
+  ingestTraffic: (trafficPoint: any) =>
     apiRequest(() => apiClient.post('/traffic/ingest', trafficPoint)),
-  
+
   // GET /api/v1/traffic/query?range=-1h
-  queryTraffic: (range = '-1h') => 
+  queryTraffic: (range = '-1h') =>
     apiRequest(() => apiClient.get(`/traffic/query?range=${range}`)),
-  
+
   // GET /api/v1/traffic/summary?range=-1h
-  getTrafficSummary: (range = '-1h') => 
+  getTrafficSummary: (range = '-1h') =>
     apiRequest(() => apiClient.get(`/traffic/summary?range=${range}`)),
-  
+
   // GET /api/v1/traffic/visualization?range=-1h&window=1m
-  getTrafficVisualization: (range = '-1h', window = '1m') => 
+  getTrafficVisualization: (range = '-1h', window = '1m') =>
     apiRequest(() => apiClient.get(`/traffic/visualization?range=${range}&window=${window}`)),
-  
+
   // POST /api/v1/traffic/predict-attack
-  predictAttack: (trafficPoint: any) => 
+  predictAttack: (trafficPoint: any) =>
     apiRequest(() => apiClient.post('/traffic/predict-attack', trafficPoint)),
-  
+
   // GET /api/v1/traffic/ml-health
-  checkMLHealth: () => 
+  checkMLHealth: () =>
     apiRequest(() => apiClient.get('/traffic/ml-health')),
 };
 
@@ -337,11 +338,11 @@ export const statisticsApi = {
   // GET /api/v1/statistics/detailed?range=-1h
   getDetailedStats: (range = '-1h') =>
     apiRequest(() => apiClient.get(`/statistics/detailed?range=${range}`)),
-  
+
   // GET /api/v1/statistics/realtime
   getRealtimeStats: () =>
     apiRequest(() => apiClient.get('/statistics/realtime')),
-  
+
   // GET /api/v1/statistics/attack-analysis?range=-1h&sourceIp=
   getAttackAnalysis: (range = '-1h', sourceIp?: string) =>
     apiRequest(() => apiClient.get(`/statistics/attack-analysis`, {
@@ -354,23 +355,23 @@ export const dataApi = {
   // GET /api/v1/data/traffic/all?range=-24h
   getAllTrafficData: (range = '-24h') =>
     apiRequest(() => apiClient.get(`/data/traffic/all?range=${range}`)),
-  
+
   // GET /api/v1/data/ml-predictions/all?range=-24h
   getAllMLPredictions: (range = '-24h') =>
     apiRequest(() => apiClient.get(`/data/ml-predictions/all?range=${range}`)),
-  
+
   // GET /api/v1/data/detection-events/all?range=-24h
   getAllDetectionEvents: (range = '-24h') =>
     apiRequest(() => apiClient.get(`/data/detection-events/all?range=${range}`)),
-  
+
   // GET /api/v1/data/blocked-ips/all?range=-30d
   getAllBlockedIPs: (range = '-30d') =>
     apiRequest(() => apiClient.get(`/data/blocked-ips/all?range=${range}`)),
-  
+
   // GET /api/v1/data/statistics
   getDatabaseStats: () =>
     apiRequest(() => apiClient.get('/data/statistics')),
-  
+
   // GET /api/v1/data/export?range=-24h
   exportAllData: (range = '-24h') =>
     apiRequest(() => apiClient.get(`/data/export?range=${range}`)),
@@ -379,58 +380,58 @@ export const dataApi = {
 // Mitigation API Services
 export const mitigationApi = {
   // GET /api/v1/mitigation/status
-  getStatus: () => 
+  getStatus: () =>
     apiRequest(() => apiClient.get('/mitigation/status')),
-  
+
   // GET /api/v1/mitigation/blocked
-  getBlockedIps: () => 
+  getBlockedIps: () =>
     apiRequest(() => apiClient.get('/mitigation/blocked')),
-  
+
   // POST /api/v1/mitigation/block/{ip}
-  blockIp: (ip: string, reason = 'Manual block via frontend') => 
+  blockIp: (ip: string, reason = 'Manual block via frontend') =>
     apiRequest(() => apiClient.post(`/mitigation/block/${ip}?reason=${encodeURIComponent(reason)}`)),
-  
+
   // POST /api/v1/mitigation/unblock/{ip}
-  unblockIp: (ip: string) => 
+  unblockIp: (ip: string) =>
     apiRequest(() => apiClient.post(`/mitigation/unblock/${ip}`)),
-  
+
   // POST /api/v1/mitigation/block/bulk
-  blockMultipleIps: (ips: string[], reason = 'Bulk block via frontend') => 
+  blockMultipleIps: (ips: string[], reason = 'Bulk block via frontend') =>
     apiRequest(() => apiClient.post('/mitigation/block/bulk', { ips, reason })),
-  
+
   // POST /api/v1/mitigation/clear
-  clearAllBlocks: () => 
+  clearAllBlocks: () =>
     apiRequest(() => apiClient.post('/mitigation/clear')),
-  
+
   // GET /api/v1/mitigation/check/{ip}
-  checkIpStatus: (ip: string) => 
+  checkIpStatus: (ip: string) =>
     apiRequest(() => apiClient.get(`/mitigation/check/${ip}`)),
-  
+
   // GET /api/v1/mitigation/stats
-  getMitigationStats: () => 
+  getMitigationStats: () =>
     apiRequest(() => apiClient.get('/mitigation/stats')),
 };
 
 // Security API Services
 export const securityApi = {
   // GET /api/v1/security/dashboard
-  getDashboard: () => 
+  getDashboard: () =>
     apiRequest(() => apiClient.get('/security/dashboard')),
-  
+
   // POST /api/v1/security/analyze/{ipAddress}
-  analyzeIpAddress: (ipAddress: string) => 
+  analyzeIpAddress: (ipAddress: string) =>
     apiRequest(() => apiClient.post(`/security/analyze/${ipAddress}`)),
-  
+
   // POST /api/v1/security/test-alert
-  testAlert: () => 
+  testAlert: () =>
     apiRequest(() => apiClient.post('/security/test-alert')),
-  
+
   // GET /api/v1/security/status
-  getStatus: () => 
+  getStatus: () =>
     apiRequest(() => apiClient.get('/security/status')),
-  
+
   // POST /api/v1/security/trigger-detection
-  triggerDetection: () => 
+  triggerDetection: () =>
     apiRequest(() => apiClient.post('/security/trigger-detection')),
 };
 
@@ -441,7 +442,7 @@ export const defendDosApi = {
   data: dataApi,
   mitigation: mitigationApi,
   security: securityApi,
-  
+
   // Convenience methods
   getAllDashboardData: async () => {
     try {
@@ -451,7 +452,7 @@ export const defendDosApi = {
         securityApi.getDashboard(),
         trafficApi.checkMLHealth()
       ]);
-      
+
       return {
         statistics: statistics.status === 'fulfilled' ? statistics.value : null,
         blocked: blocked.status === 'fulfilled' ? blocked.value : null,

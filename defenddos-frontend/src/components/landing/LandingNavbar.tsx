@@ -47,7 +47,7 @@ export default function LandingNavbar() {
     const navLinks = [
         { href: '#features', label: 'Features' },
         { href: '#tech', label: 'Technology' },
-        { href: '#pricing', label: 'Pricing' },
+        { href: 'https://github.com/ByteAcumen/DefenDDoS-Cloud', label: 'GitHub', external: true },
         { href: '/docs', label: 'Docs' },
     ];
 
@@ -58,8 +58,8 @@ export default function LandingNavbar() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-                        ? 'bg-[#0a0a1a]/90 backdrop-blur-2xl border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
-                        : 'bg-transparent'
+                    ? 'bg-[#0a0a1a]/90 backdrop-blur-2xl border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
+                    : 'bg-transparent'
                     }`}
             >
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,8 +86,8 @@ export default function LandingNavbar() {
                                     href={link.href}
                                     onClick={(e) => handleNavClick(e, link.href)}
                                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${activeSection === link.href.slice(1)
-                                            ? 'text-white bg-white/10'
-                                            : 'text-slate-300 hover:text-white hover:bg-white/5'
+                                        ? 'text-white bg-white/10'
+                                        : 'text-slate-300 hover:text-white hover:bg-white/5'
                                         }`}
                                 >
                                     {link.label}
@@ -142,8 +142,8 @@ export default function LandingNavbar() {
                                         href={link.href}
                                         onClick={(e) => handleNavClick(e, link.href)}
                                         className={`px-4 py-3 rounded-lg transition-colors font-medium ${activeSection === link.href.slice(1)
-                                                ? 'text-white bg-white/10'
-                                                : 'text-slate-300 hover:text-white hover:bg-white/5'
+                                            ? 'text-white bg-white/10'
+                                            : 'text-slate-300 hover:text-white hover:bg-white/5'
                                             }`}
                                     >
                                         {link.label}

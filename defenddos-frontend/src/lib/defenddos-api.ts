@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 // Base API configuration - matches API documentation
-const API_BASE = 'http://localhost:8082';
+const API_BASE = '/api/backend'; // Use proxy to avoid CORS and target correct port 8081
 const ML_SERVICE_URL = 'http://localhost:8000';
 
 const api = axios.create({
@@ -11,8 +11,26 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'X-API-KEY': 'defenddos-api-key', // Required by backend
   },
 });
+
+// Add Request Interceptor to inject Token
+api.interceptors.request.use(
+  (config) => {
+    // Client-side only
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('defenddos_auth_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Create separate ML service client
 const mlApi = axios.create({
@@ -84,7 +102,7 @@ api.interceptors.response.use(
   (response) => {
     // Reset error flag on successful connection
     connectionErrorShown = false;
-    
+
     // Handle wrapped responses (ApiResponse format)
     if (response.data && typeof response.data === 'object' && 'success' in response.data) {
       if (response.data.success) {
@@ -104,7 +122,7 @@ api.interceptors.response.use(
   (error) => {
     const now = Date.now();
     const timeSinceLastError = now - lastErrorTime;
-    
+
     // Enhanced error handling with throttling - silently handle connection errors
     if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
       // Silently fail - no toasts or console errors for connection issues
@@ -123,7 +141,7 @@ api.interceptors.response.use(
       }
       lastErrorTime = now;
     }
-    
+
     // Silently handle errors - no console spam
     return Promise.reject(error);
   }
@@ -169,7 +187,7 @@ export const trafficAPI = {
     const cacheKey = generateCacheKey('/api/v1/traffic/query', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/traffic/query?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -180,7 +198,7 @@ export const trafficAPI = {
     const cacheKey = generateCacheKey('/api/v1/traffic/summary', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/traffic/summary?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -191,7 +209,7 @@ export const trafficAPI = {
     const cacheKey = generateCacheKey('/api/v1/traffic/visualization', { range, window });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/traffic/visualization?range=${range}&window=${window}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -213,7 +231,7 @@ export const trafficAPI = {
     const cacheKey = generateCacheKey('/api/v1/traffic/ml-health');
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get('/api/v1/traffic/ml-health');
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -227,7 +245,7 @@ export const statisticsAPI = {
     const cacheKey = generateCacheKey('/api/v1/statistics/detailed', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/statistics/detailed?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -238,7 +256,7 @@ export const statisticsAPI = {
     const cacheKey = generateCacheKey('/api/v1/statistics/realtime', { window });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/statistics/realtime?window=${window}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -251,7 +269,7 @@ export const statisticsAPI = {
     const cacheKey = generateCacheKey('/api/v1/statistics/attack-analysis', params);
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get('/api/v1/statistics/attack-analysis', { params });
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -262,7 +280,7 @@ export const statisticsAPI = {
     const cacheKey = generateCacheKey('/api/v1/statistics/ml-stats', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/statistics/ml-stats?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -275,7 +293,7 @@ export const dataAPI = {
     const cacheKey = generateCacheKey('/api/v1/data/traffic/all', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/data/traffic/all?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -285,7 +303,7 @@ export const dataAPI = {
     const cacheKey = generateCacheKey('/api/v1/data/ml-predictions/all', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/data/ml-predictions/all?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -295,7 +313,7 @@ export const dataAPI = {
     const cacheKey = generateCacheKey('/api/v1/data/detection-events/all', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/data/detection-events/all?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -305,7 +323,7 @@ export const dataAPI = {
     const cacheKey = generateCacheKey('/api/v1/data/blocked-ips/all', { range });
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get(`/api/v1/data/blocked-ips/all?range=${range}`);
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -315,7 +333,7 @@ export const dataAPI = {
     const cacheKey = generateCacheKey('/api/v1/data/statistics');
     const cached = requestCache.get(cacheKey);
     if (cached) return cached;
-    
+
     const response = await api.get('/api/v1/data/statistics');
     requestCache.set(cacheKey, response.data);
     return response.data;
@@ -487,29 +505,29 @@ export const healthAPI = {
 export const defenddosAPI = {
   // Category 1: Health Checks (3 endpoints)
   health: healthAPI,
-  
+
   // Category 2: Traffic Endpoints (5 endpoints)
   traffic: trafficAPI,
-  
+
   // Category 3: ML Prediction (1 endpoint - included in traffic)
-  
+
   // Category 4: Statistics (4 endpoints)
   statistics: statisticsAPI,
-  
+
   // Category 5: Data Retrieval (5 endpoints)
   data: dataAPI,
-  
+
   // Category 6: Mitigation (7 endpoints)
   mitigation: mitigationAPI,
-  
+
   // Category 7: Security (1 endpoint)
   security: securityAPI,
-  
+
   // Category 8: Threat Intelligence (3 endpoints)
   threatIntelligence: threatIntelligenceAPI,
-  
+
   // Category 9: Actuator/Monitoring (3 endpoints - included in health)
-  
+
   // Utility methods
   async testAllConnections() {
     const results = {
@@ -517,31 +535,31 @@ export const defenddosAPI = {
       mlService: false,
       errors: [] as string[]
     };
-    
+
     try {
       await this.health.getBackendHealth();
       results.backend = true;
     } catch (error: any) {
       results.errors.push(`Backend: ${error.message}`);
     }
-    
+
     try {
       await this.health.getMLServiceHealth();
       results.mlService = true;
     } catch (error: any) {
       results.errors.push(`ML Service: ${error.message}`);
     }
-    
+
     return results;
   },
-  
+
   async getDashboardData() {
     const [stats, blocked, security] = await Promise.allSettled([
       this.statistics.getDetailedStatistics('-1h'),
       this.mitigation.getBlockedIPs(),
       this.security.getDashboard()
     ]);
-    
+
     return {
       statistics: stats.status === 'fulfilled' ? stats.value : null,
       blockedIPs: blocked.status === 'fulfilled' ? blocked.value : null,

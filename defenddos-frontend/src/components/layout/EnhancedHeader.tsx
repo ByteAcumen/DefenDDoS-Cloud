@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Bell, 
-  User, 
-  Settings, 
-  LogOut, 
+import {
+  Search,
+  Bell,
+  User,
+  Settings,
+  LogOut,
   ChevronDown,
   Shield,
   Activity,
@@ -20,8 +20,9 @@ import {
   Monitor
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
   id: string;
@@ -32,10 +33,7 @@ interface Notification {
   read: boolean;
 }
 
-interface HeaderProps {
-  onMenuToggle?: () => void;
-  isSidebarOpen?: boolean;
-}
+interface HeaderProps { }
 
 // Memoized mock notifications to prevent recreation
 const mockNotifications: Notification[] = [
@@ -65,9 +63,11 @@ const mockNotifications: Notification[] = [
   },
 ];
 
-export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderProps) {
+export default function EnhancedHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const { user, isAuthenticated, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -142,8 +142,8 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
   }, []);
 
   // Memoize unread count calculation
-  const unreadCount = useMemo(() => 
-    notifications.filter(n => !n.read).length, 
+  const unreadCount = useMemo(() =>
+    notifications.filter(n => !n.read).length,
     [notifications]
   );
 
@@ -161,335 +161,274 @@ export default function EnhancedHeader({ onMenuToggle, isSidebarOpen }: HeaderPr
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showNotifications, showUserMenu, showThemeMenu]);
 
+  // Hide header completely on landing page as per user request
+  if (pathname === '/') {
+    return null;
+  }
+
+  // Helper for dashboard logic (though we won't render on home anymore)
+  const isHome = pathname === '/';
+
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-      className={`fixed top-0 left-0 right-0 z-50 bg-card/98 backdrop-blur-xl border-b transition-all duration-200 ${
-        isScrolled 
-          ? 'border-border/60 shadow-lg shadow-primary/5' 
-          : 'border-border/30 shadow-sm'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isHome && !isScrolled
+        ? 'bg-transparent border-transparent py-4'
+        : 'bg-background/80 backdrop-blur-md border-b border-border/40 shadow-sm py-3'
+        }`}
     >
-      <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6">
-        <div className="flex items-center justify-between h-full">
-          {/* Left Section: Menu Toggle & Logo */}
-          <div className="flex items-center gap-4">
-            {/* Mobile Menu Toggle */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                if (onMenuToggle) {
-                  onMenuToggle();
-                }
-              }}
-              className="lg:hidden p-1.5 sm:p-2 rounded-lg hover:bg-secondary transition-all duration-200"
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-10 sm:h-12">
+          {/* Logo Section */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <motion.div
+              whileHover={{ rotate: 180 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className={`p-2 rounded-xl ${isHome && !isScrolled ? 'bg-white/10' : 'bg-primary/10'}`}
             >
-              {isSidebarOpen ? (
-                <X className="w-5 h-5 sm:w-5 sm:h-5 text-foreground" />
-              ) : (
-                <Menu className="w-5 h-5 sm:w-5 sm:h-5 text-foreground" />
-              )}
-            </motion.button>
-
-            {/* Logo & Title */}
-            <Link href="/dashboard" className="flex items-center gap-2 sm:gap-2.5 group">
-              <motion.div 
-                className="relative p-2 sm:p-2.5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg sm:rounded-xl border border-primary/10"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              >
-                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                <motion.div 
-                  className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-green-500 rounded-full border-2 border-card shadow-sm"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </motion.div>
-              <div>
-                <h1 className="text-sm sm:text-base lg:text-lg font-bold text-foreground">
-                  DefenDDoS
-                </h1>
-                <p className="text-[8px] sm:text-[9px] lg:text-[10px] text-muted-foreground font-medium">Protection Active</p>
-              </div>
-            </Link>
-          </div>
-
-          {/* Center Section: Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-3 sm:mx-4 lg:mx-6">
-            <div className="relative w-full">
-              <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground transition-colors duration-200" />
-              <input
-                type="text"
-                placeholder="Search IP addresses, logs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-1.5 sm:py-2 bg-muted/30 border border-border/50 rounded-lg text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-muted/50 transition-all duration-200"
-              />
-              {searchQuery && (
-                <motion.button
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 p-0.5 sm:p-1 rounded-full hover:bg-muted transition-colors duration-200"
-                >
-                  <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hover:text-foreground" />
-                </motion.button>
-              )}
-            </div>
-          </div>
-
-          {/* Right Section: Status & Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* System Status Indicators */}
-            <motion.div 
-              className="hidden xl:flex items-center gap-2 sm:gap-2.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-muted/50 rounded-lg border border-border/50"
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
-                <span className="text-[10px] sm:text-[11px] text-foreground font-semibold">API</span>
-              </div>
-              <div className="w-px h-3 sm:h-3.5 bg-border" />
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
-                <span className="text-[10px] sm:text-[11px] text-foreground font-semibold">ML</span>
-              </div>
-              <div className="w-px h-3 sm:h-3.5 bg-border" />
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <Database className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500" />
-                <span className="text-[10px] sm:text-[11px] text-foreground font-semibold">DB</span>
-              </div>
+              <Shield className={`w-5 h-5 ${isHome && !isScrolled ? 'text-white' : 'text-primary'}`} />
             </motion.div>
+            <div className="flex flex-col">
+              <span className={`text-lg font-bold tracking-tight ${isHome && !isScrolled ? 'text-white' : 'text-foreground'}`}>
+                DefenDDoS
+              </span>
+              {!isHome && (
+                <span className="text-[10px] text-muted-foreground font-medium -mt-1">
+                  Security Console
+                </span>
+              )}
+            </div>
+          </Link>
 
-            {/* Theme Switcher */}
+          {/* Center Section - Search (Dashboard Only) */}
+          {!isHome && (
+            <div className="hidden md:flex flex-1 max-w-md mx-8">
+              <div className="relative w-full group">
+                <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative flex items-center bg-secondary/50 border border-border/50 rounded-lg px-3 py-1.5 focus-within:bg-background focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200">
+                  <Search className="w-4 h-4 text-muted-foreground mr-2" />
+                  <input
+                    type="text"
+                    placeholder="Search IPs, logs, or events..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground/70"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')}>
+                      <X className="w-3 h-3 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Right Section */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Theme Toggle */}
             <div className="relative">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowThemeMenu(!showThemeMenu);
-                  setShowNotifications(false);
-                  setShowUserMenu(false);
-                }}
-                className="p-1.5 sm:p-2 rounded-lg hover:bg-muted/70 transition-all duration-150 border border-transparent hover:border-border/50"
-                title={`Theme: ${getThemeLabel()}`}
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className={`p-2 rounded-full transition-colors ${isHome && !isScrolled
+                  ? 'bg-white/10 hover:bg-white/20 text-white'
+                  : 'hover:bg-accent text-foreground'
+                  }`}
               >
-                <div className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
-                  {getThemeIcon()}
-                </div>
-              </motion.button>
-
-              <AnimatePresence>
-                {showThemeMenu && (
+                <AnimatePresence mode="wait">
                   <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute right-0 mt-2 w-36 sm:w-44 bg-popover/98 backdrop-blur-xl rounded-xl shadow-xl shadow-primary/5 overflow-hidden border border-border"
+                    key={theme}
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <div className="p-1.5 space-y-0.5">
-                      {['light', 'dark', 'system'].map((themeOption) => (
-                        <motion.button
-                          key={themeOption}
-                          whileHover={{ x: 3 }}
-                          transition={{ duration: 0.15 }}
-                          onClick={() => {
-                            setTheme(themeOption as 'light' | 'dark' | 'system');
-                            setShowThemeMenu(false);
-                          }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 ${
-                            theme === themeOption
-                              ? 'bg-primary text-primary-foreground'
-                              : 'hover:bg-muted text-foreground'
-                          }`}
-                        >
-                          {themeOption === 'light' && <Sun className="w-4 h-4" />}
-                          {themeOption === 'dark' && <Moon className="w-4 h-4" />}
-                          {themeOption === 'system' && <Monitor className="w-4 h-4" />}
-                          <span className="text-sm font-medium capitalize">{themeOption}</span>
-                          {theme === themeOption && (
-                            <motion.div
-                              layoutId="activeTheme"
-                              className="ml-auto w-1.5 h-1.5 rounded-full bg-current"
-                              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                            />
-                          )}
-                        </motion.button>
-                      ))}
-                    </div>
+                    {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                   </motion.div>
-                )}
-              </AnimatePresence>
+                </AnimatePresence>
+              </motion.button>
             </div>
 
-            {/* Notifications */}
-            <div className="relative">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowNotifications(!showNotifications);
-                  setShowUserMenu(false);
-                  setShowThemeMenu(false);
-                }}
-                className="relative p-1.5 sm:p-2 rounded-lg hover:bg-muted/70 transition-all duration-150 border border-transparent hover:border-border/50"
-              >
-                <Bell className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-foreground" />
-                {unreadCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                    className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-red-500 text-white text-[9px] sm:text-[10px] font-bold rounded-full flex items-center justify-center ring-1 ring-background"
-                  >
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </motion.span>
-                )}
-              </motion.button>
+            {/* Dashboard Specific Items */}
+            {!isHome ? (
+              <>
+                <div className="h-4 w-px bg-border/50 hidden sm:block" />
 
-              <AnimatePresence>
-                {showNotifications && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-popover/98 backdrop-blur-xl rounded-xl shadow-xl shadow-primary/5 overflow-hidden border border-border"
+                {/* System Status - Compact */}
+                <div className="hidden lg:flex items-center gap-3 px-3 py-1.5 bg-secondary/50 rounded-full border border-border/50">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-xs font-medium">Online</span>
+                  </div>
+                </div>
+
+                {/* Notifications */}
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowNotifications(!showNotifications);
+                      setShowUserMenu(false);
+                      setShowThemeMenu(false);
+                    }}
+                    className="relative p-2 rounded-full hover:bg-accent transition-colors"
                   >
-                    <div className="p-4 border-b border-border">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-foreground">Notifications</h3>
-                        <button className="text-xs text-primary hover:text-primary-600 transition-colors">
-                          Mark all read
-                        </button>
-                      </div>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length > 0 ? (
-                        notifications.map((notification) => (
-                          <motion.div
-                            key={notification.id}
-                            whileHover={{ scale: 1.01 }}
-                            className={`p-4 border-b border-border cursor-pointer transition-colors hover:bg-secondary/50 ${
-                              !notification.read ? 'bg-secondary/30' : ''
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <span className="text-2xl">
-                                {getNotificationIcon(notification.type)}
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-foreground text-sm">
-                                  {notification.title}
-                                </p>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {notification.message}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {formatTimestamp(notification.timestamp)}
-                                </p>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="p-8 text-center text-muted-foreground">
-                          No notifications
+                    <Bell className="w-5 h-5 text-foreground" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-background" />
+                    )}
+                  </motion.button>
+                  <AnimatePresence>
+                    {showNotifications && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                        transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-popover/98 backdrop-blur-xl rounded-xl shadow-xl shadow-primary/5 overflow-hidden border border-border"
+                      >
+                        <div className="p-4 border-b border-border">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-foreground">Notifications</h3>
+                            <button className="text-xs text-primary hover:text-primary-600 transition-colors">
+                              Mark all read
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="p-3 border-t border-border bg-secondary/30">
-                      <Link
-                        href="/notifications"
-                        className="block text-center text-sm text-primary hover:text-primary-600 transition-colors"
-                      >
-                        View all notifications →
-                      </Link>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                        <div className="max-h-96 overflow-y-auto">
+                          {notifications.length > 0 ? (
+                            notifications.map((notification) => (
+                              <motion.div
+                                key={notification.id}
+                                whileHover={{ scale: 1.01 }}
+                                className={`p-4 border-b border-border cursor-pointer transition-colors hover:bg-secondary/50 ${!notification.read ? 'bg-secondary/30' : ''
+                                  }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <span className="text-2xl">
+                                    {getNotificationIcon(notification.type)}
+                                  </span>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-foreground text-sm">
+                                      {notification.title}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      {notification.message}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {formatTimestamp(notification.timestamp)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center text-muted-foreground">
+                              No notifications
+                            </div>
+                          )}
+                        </div>
 
-            {/* User Menu */}
-            <div className="relative">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowUserMenu(!showUserMenu);
-                  setShowNotifications(false);
-                  setShowThemeMenu(false);
-                }}
-                className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-lg hover:bg-muted/70 transition-all duration-150 border border-transparent hover:border-border/50"
-              >
-                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center ring-1 ring-offset-1 ring-offset-background ring-primary/30">
-                  <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hidden md:block" />
-              </motion.button>
 
-              <AnimatePresence>
-                {showUserMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute right-0 mt-2 w-56 sm:w-64 bg-popover/98 backdrop-blur-xl rounded-xl shadow-xl shadow-primary/5 overflow-hidden border border-border"
+                {/* User Profile */}
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowUserMenu(!showUserMenu);
+                      setShowNotifications(false);
+                      setShowThemeMenu(false);
+                    }}
+                    className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-lg hover:bg-muted/70 transition-all duration-150 border border-transparent hover:border-border/50"
                   >
-                    <div className="p-4 border-b border-border">
-                      <p className="font-semibold text-foreground">Admin User</p>
-                      <p className="text-sm text-muted-foreground">admin@defenddos.com</p>
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center ring-1 ring-offset-1 ring-offset-background ring-primary/30">
+                      <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                     </div>
-                    <div className="p-2">
-                      <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-                        <Link
-                          href="/admin"
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-all duration-200"
-                        >
-                          <User className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-foreground font-medium">Profile</span>
-                        </Link>
-                      </motion.div>
-                      <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-                        <Link
-                          href="/system"
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-all duration-200"
-                        >
-                          <Settings className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-foreground font-medium">Settings</span>
-                        </Link>
-                      </motion.div>
-                      <div className="my-2 h-px bg-border" />
-                      <motion.button 
-                        whileHover={{ x: 4 }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-900/20 transition-all duration-200 text-red-400"
+                    <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hidden md:block" />
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {showUserMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                        transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute right-0 mt-2 w-56 sm:w-64 bg-popover/98 backdrop-blur-xl rounded-xl shadow-xl shadow-primary/5 overflow-hidden border border-border"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span className="text-sm font-medium">Logout</span>
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                        <div className="p-4 border-b border-border">
+                          <p className="font-semibold text-foreground">{user?.name || 'User'}</p>
+                          <p className="text-sm text-muted-foreground">{user?.email || 'user@example.com'}</p>
+                        </div>
+                        <div className="p-2">
+                          <Link
+                            href="/profile"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/50 transition-all duration-200 text-foreground"
+                          >
+                            <User className="w-4 h-4" />
+                            <span className="text-sm font-medium">Profile</span>
+                          </Link>
+                          <Link
+                            href="/settings"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/50 transition-all duration-200 text-foreground"
+                          >
+                            <Settings className="w-4 h-4" />
+                            <span className="text-sm font-medium">Settings</span>
+                          </Link>
+                          <div className="h-px bg-border my-2" />
+                          <motion.button
+                            whileHover={{ x: 4 }}
+                            onClick={() => {
+                              logout();
+                              setShowUserMenu(false);
+                              router.push('/login');
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 transition-all duration-200 text-red-400"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span className="text-sm font-medium">Sign out</span>
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              /* Landing Page Specific Items */
+              <Link href="/dashboard">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all ${isHome && !isScrolled
+                    ? 'bg-white text-black hover:bg-white/90'
+                    : 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/25'
+                    }`}
+                >
+                  <span>Dashboard</span>
+                  <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+                </motion.button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Mobile Notification/Menu Drawers would go here if needed */}
     </motion.header>
   );
 }

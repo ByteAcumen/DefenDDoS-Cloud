@@ -8,11 +8,11 @@ const footerLinks = {
         { label: 'Features', href: '#features' },
         { label: 'Dashboard', href: '/dashboard' },
         { label: 'API Docs', href: '/docs' },
-        { label: 'Pricing', href: '#pricing' },
+        { label: 'GitHub', href: 'https://github.com/ByteAcumen/DefenDDoS-Cloud', external: true },
     ],
     resources: [
         { label: 'Documentation', href: '/docs' },
-        { label: 'GitHub', href: 'https://github.com', external: true },
+        { label: 'Source Code', href: 'https://github.com/ByteAcumen/DefenDDoS-Cloud', external: true },
         { label: 'API Reference', href: '/api' },
         { label: 'Changelog', href: '/changelog' },
     ],
@@ -25,7 +25,7 @@ const footerLinks = {
 };
 
 const socialLinks = [
-    { icon: Github, href: 'https://github.com', label: 'GitHub' },
+    { icon: Github, href: 'https://github.com/ByteAcumen/DefenDDoS-Cloud', label: 'GitHub' },
     { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
     { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
     { icon: Mail, href: 'mailto:contact@defenddos.com', label: 'Email' },
@@ -43,26 +43,29 @@ export default function LandingFooter() {
                     <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
                         <div className="text-center lg:text-left">
                             <h3 className="text-2xl lg:text-3xl font-bold text-white mb-3">
-                                Ready to protect your infrastructure?
+                                Open Source DDoS Protection
                             </h3>
                             <p className="text-slate-400 max-w-lg">
-                                Start your free trial today. No credit card required.
+                                Start protecting your infrastructure today. Free and open source forever.
                             </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
-                                href="/dashboard"
+                                href="/register"
                                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600 text-white font-semibold hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] transition-all duration-300"
                             >
-                                <span>Get Started Free</span>
+                                <span>Get Started</span>
                                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                             </Link>
-                            <Link
-                                href="/contact"
+                            <a
+                                href="https://github.com/ByteAcumen/DefenDDoS-Cloud"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-white/10 text-white font-semibold hover:bg-white/5 transition-all duration-300"
                             >
-                                Contact Sales
-                            </Link>
+                                <Github className="w-5 h-5" />
+                                View on GitHub
+                            </a>
                         </div>
                     </div>
                 </div>
