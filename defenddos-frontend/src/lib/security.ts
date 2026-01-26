@@ -1,367 +1,293 @@
 /**
  * Security Utilities for DefenDDoS
- * Industry-grade security functions for input validation, sanitization, and protection
+ * Provides input validation, sanitization, and security helpers
  */
 
 // ============================================
-// INPUT SANITIZATION
+// EMAIL VALIDATION
 // ============================================
-
-/**
- * Sanitize string input to prevent XSS attacks
- * Removes dangerous HTML tags and escape special characters
- */
-export function sanitizeInput(input: string): string {
-    if (!input || typeof input !== 'string') return '';
-
-    return input
-        .trim()
-        // Remove null bytes
-        .replace(/\0/g, '')
-        // Escape HTML special characters
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .replace(/\//g, '&#x2F;')
-        // Remove potential script injections
-        .replace(/javascript:/gi, '')
-        .replace(/on\w+=/gi, '');
-}
-
-/**
- * Sanitize email input
- * Only allows valid email characters
- */
-export function sanitizeEmail(email: string): string {
-    if (!email || typeof email !== 'string') return '';
-
-    return email
-        .toLowerCase()
-        .trim()
-        // Only allow valid email characters
-        .replace(/[^a-z0-9@._+-]/g, '')
-        // Maximum length
-        .slice(0, 254);
-}
-
-/**
- * Validate email format
- */
 export function isValidEmail(email: string): boolean {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email) && email.length <= 254;
 }
 
-/**
- * Sanitize name input
- * Allows letters, spaces, hyphens, apostrophes
- */
-export function sanitizeName(name: string): string {
-    if (!name || typeof name !== 'string') return '';
-
-    return name
-        .trim()
-        // Only allow safe name characters
-        .replace(/[^a-zA-Z\s\-']/g, '')
-        // Collapse multiple spaces
-        .replace(/\s+/g, ' ')
-        // Maximum length
-        .slice(0, 100);
-}
-
 // ============================================
-// PASSWORD SECURITY
+// PASSWORD VALIDATION
 // ============================================
-
 export interface PasswordStrength {
-    score: number;        // 0-5
-    label: string;
-    isStrong: boolean;
+    isValid: boolean;
+    score: number;
     feedback: string[];
 }
 
-/**
- * Check password strength with detailed feedback
- */
-export function checkPasswordStrength(password: string): PasswordStrength {
+export function validatePassword(password: string): PasswordStrength {
     const feedback: string[] = [];
     let score = 0;
 
-    if (!password) {
-        return { score: 0, label: 'None', isStrong: false, feedback: ['Password is required'] };
-    }
-
-    // Length check
+    // Minimum length
     if (password.length >= 8) {
         score++;
     } else {
-        feedback.push('At least 8 characters required');
+        feedback.push('Password must be at least 8 characters long');
     }
 
-    if (password.length >= 12) {
-        score++;
-    }
-
-    // Lowercase
+    // Contains lowercase
     if (/[a-z]/.test(password)) {
         score++;
     } else {
-        feedback.push('Add lowercase letters');
+        feedback.push('Must contain at least one lowercase letter');
     }
 
-    // Uppercase
+    // Contains uppercase
     if (/[A-Z]/.test(password)) {
         score++;
     } else {
-        feedback.push('Add uppercase letters');
+        feedback.push('Must contain at least one uppercase letter');
     }
 
-    // Numbers
+    // Contains number
     if (/[0-9]/.test(password)) {
         score++;
     } else {
-        feedback.push('Add numbers');
+        feedback.push('Must contain at least one number');
     }
 
-    // Special characters
+    // Contains special character
     if (/[^a-zA-Z0-9]/.test(password)) {
         score++;
     } else {
-        feedback.push('Add special characters (!@#$%^&*)');
+        feedback.push('Must contain at least one special character');
     }
 
-    // Common password patterns to avoid
-    const commonPatterns = ['password', '123456', 'qwerty', 'abc123', 'letmein', 'welcome', 'admin'];
-    if (commonPatterns.some(p => password.toLowerCase().includes(p))) {
-        score = Math.max(0, score - 2);
-        feedback.push('Avoid common password patterns');
-    }
-
-    // Sequential characters
+    // Additional security checks
+    if (password.length >= 12) score++;
     if (/(.)\1{2,}/.test(password)) {
-        score = Math.max(0, score - 1);
-        feedback.push('Avoid repeated characters');
+        feedback.push('Avoid repeating characters');
+        score--;
     }
-
-    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
 
     return {
-        score: Math.min(score, 5),
-        label: labels[Math.min(score, 5)],
-        isStrong: score >= 4,
-        feedback,
+        isValid: score >= 5 && feedback.length === 0,
+        score: Math.max(0, Math.min(5, score)),
+        feedback
     };
 }
 
 // ============================================
-// CSRF PROTECTION
+// INPUT SANITIZATION
 // ============================================
-
-const CSRF_TOKEN_KEY = 'csrf_token';
-
-/**
- * Generate a cryptographically secure CSRF token
- */
-export function generateCSRFToken(): string {
-    const array = new Uint8Array(32);
-    crypto.getRandomValues(array);
-    const token = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
-
-    // Store in sessionStorage (more secure than localStorage)
-    if (typeof window !== 'undefined') {
-        sessionStorage.setItem(CSRF_TOKEN_KEY, token);
-    }
-
-    return token;
+export function sanitizeInput(input: string): string {
+    return input
+        .trim()
+        .replace(/[<>]/g, '') // Remove potential HTML tags
+        .slice(0, 1000); // Limit length
 }
 
-/**
- * Get current CSRF token or generate new one
- */
-export function getCSRFToken(): string {
-    if (typeof window === 'undefined') return '';
-
-    let token = sessionStorage.getItem(CSRF_TOKEN_KEY);
-    if (!token) {
-        token = generateCSRFToken();
-    }
-    return token;
+export function sanitizeEmail(email: string): string {
+    return email.toLowerCase().trim().slice(0, 254);
 }
 
-/**
- * Validate CSRF token
- */
-export function validateCSRFToken(token: string): boolean {
-    if (typeof window === 'undefined') return false;
-
-    const storedToken = sessionStorage.getItem(CSRF_TOKEN_KEY);
-    return storedToken !== null && storedToken === token && token.length === 64;
+export function sanitizeName(name: string): string {
+    return name
+        .trim()
+        .replace(/[^a-zA-Z0-9\s.-]/g, '') // Allow only alphanumeric, spaces, dots, hyphens
+        .slice(0, 100);
 }
 
 // ============================================
 // RATE LIMITING (Client-side)
 // ============================================
-
 interface RateLimitEntry {
     count: number;
-    firstAttempt: number;
-    lastAttempt: number;
+    resetTime: number;
 }
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-interface RateLimitConfig {
-    maxAttempts: number;      // Max attempts allowed
-    windowMs: number;         // Time window in milliseconds
-    blockDurationMs: number;  // How long to block after max attempts
-}
-
-const defaultRateLimitConfig: RateLimitConfig = {
-    maxAttempts: 5,
-    windowMs: 60 * 1000,        // 1 minute window
-    blockDurationMs: 15 * 60 * 1000, // 15 minute block
-};
-
-/**
- * Check if action is rate limited
- */
 export function checkRateLimit(
     key: string,
-    config: Partial<RateLimitConfig> = {}
-): { allowed: boolean; remainingAttempts: number; resetTime?: number } {
-    const { maxAttempts, windowMs, blockDurationMs } = { ...defaultRateLimitConfig, ...config };
+    maxRequests: number = 5,
+    windowMs: number = 60000
+): boolean {
     const now = Date.now();
-
     const entry = rateLimitStore.get(key);
 
-    if (!entry) {
-        rateLimitStore.set(key, { count: 1, firstAttempt: now, lastAttempt: now });
-        return { allowed: true, remainingAttempts: maxAttempts - 1 };
+    if (!entry || now > entry.resetTime) {
+        rateLimitStore.set(key, {
+            count: 1,
+            resetTime: now + windowMs
+        });
+        return true;
     }
 
-    // Check if still in block period
-    if (entry.count >= maxAttempts) {
-        const blockEndTime = entry.lastAttempt + blockDurationMs;
-        if (now < blockEndTime) {
-            return {
-                allowed: false,
-                remainingAttempts: 0,
-                resetTime: blockEndTime
-            };
-        } else {
-            // Block period expired, reset
-            rateLimitStore.set(key, { count: 1, firstAttempt: now, lastAttempt: now });
-            return { allowed: true, remainingAttempts: maxAttempts - 1 };
+    if (entry.count >= maxRequests) {
+        return false;
+    }
+
+    entry.count++;
+    return true;
+}
+
+export function getRateLimitInfo(key: string): {
+    remaining: number;
+    resetIn: number;
+} {
+    const entry = rateLimitStore.get(key);
+    const maxRequests = 5;
+
+    if (!entry) {
+        return { remaining: maxRequests, resetIn: 0 };
+    }
+
+    const now = Date.now();
+    const resetIn = Math.max(0, entry.resetTime - now);
+    const remaining = Math.max(0, maxRequests - entry.count);
+
+    return { remaining, resetIn };
+}
+
+// ============================================
+// CSRF TOKEN GENERATION
+// ============================================
+export function generateCSRFToken(): string {
+    const array = new Uint8Array(32);
+    if (typeof window !== 'undefined' && window.crypto) {
+        window.crypto.getRandomValues(array);
+    } else {
+        for (let i = 0; i < array.length; i++) {
+            array[i] = Math.floor(Math.random() * 256);
         }
     }
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
 
-    // Check if window expired
-    if (now - entry.firstAttempt > windowMs) {
-        rateLimitStore.set(key, { count: 1, firstAttempt: now, lastAttempt: now });
-        return { allowed: true, remainingAttempts: maxAttempts - 1 };
+// ============================================
+// SECURE TOKEN STORAGE
+// ============================================
+const TOKEN_KEY = 'defenddos_auth_token';
+const REFRESH_TOKEN_KEY = 'defenddos_refresh_token';
+const USER_KEY = 'defenddos_user';
+
+export const secureStorage = {
+    setToken(token: string): void {
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem(TOKEN_KEY, token);
+            } catch (error) {
+                console.error('Failed to store token:', error);
+            }
+        }
+    },
+
+    getToken(): string | null {
+        if (typeof window !== 'undefined') {
+            try {
+                return localStorage.getItem(TOKEN_KEY);
+            } catch (error) {
+                console.error('Failed to retrieve token:', error);
+                return null;
+            }
+        }
+        return null;
+    },
+
+    setRefreshToken(token: string): void {
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem(REFRESH_TOKEN_KEY, token);
+            } catch (error) {
+                console.error('Failed to store refresh token:', error);
+            }
+        }
+    },
+
+    getRefreshToken(): string | null {
+        if (typeof window !== 'undefined') {
+            try {
+                return localStorage.getItem(REFRESH_TOKEN_KEY);
+            } catch (error) {
+                console.error('Failed to retrieve refresh token:', error);
+                return null;
+            }
+        }
+        return null;
+    },
+
+    setUser(user: any): void {
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem(USER_KEY, JSON.stringify(user));
+            } catch (error) {
+                console.error('Failed to store user:', error);
+            }
+        }
+    },
+
+    getUser(): any | null {
+        if (typeof window !== 'undefined') {
+            try {
+                const userStr = localStorage.getItem(USER_KEY);
+                return userStr ? JSON.parse(userStr) : null;
+            } catch (error) {
+                console.error('Failed to retrieve user:', error);
+                return null;
+            }
+        }
+        return null;
+    },
+
+    clearAll(): void {
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.removeItem(TOKEN_KEY);
+                localStorage.removeItem(REFRESH_TOKEN_KEY);
+                localStorage.removeItem(USER_KEY);
+            } catch (error) {
+                console.error('Failed to clear storage:', error);
+            }
+        }
     }
-
-    // Increment count
-    entry.count++;
-    entry.lastAttempt = now;
-
-    return {
-        allowed: entry.count <= maxAttempts,
-        remainingAttempts: Math.max(0, maxAttempts - entry.count),
-        resetTime: entry.count >= maxAttempts ? now + blockDurationMs : undefined
-    };
-}
-
-/**
- * Reset rate limit for a key (e.g., on successful login)
- */
-export function resetRateLimit(key: string): void {
-    rateLimitStore.delete(key);
-}
-
-// ============================================
-// SECURE TOKEN GENERATION
-// ============================================
-
-/**
- * Generate a secure random token
- */
-export function generateSecureToken(length: number = 32): string {
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/**
- * Generate a secure session ID
- */
-export function generateSessionId(): string {
-    const timestamp = Date.now().toString(36);
-    const random = generateSecureToken(16);
-    return `${timestamp}-${random}`;
-}
-
-// ============================================
-// SECURE HASH (Client-side, for comparison only)
-// ============================================
-
-/**
- * Hash a string using SHA-256
- * Note: For passwords, always hash on the server with bcrypt/argon2
- * This is only for client-side comparisons or non-sensitive hashing
- */
-export async function hashSHA256(input: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(input);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// ============================================
-// DEVICE FINGERPRINTING (Basic)
-// ============================================
-
-/**
- * Generate a basic device fingerprint for session validation
- */
-export function getDeviceFingerprint(): string {
-    if (typeof window === 'undefined') return 'server';
-
-    const components = [
-        navigator.userAgent,
-        navigator.language,
-        screen.width,
-        screen.height,
-        screen.colorDepth,
-        new Date().getTimezoneOffset(),
-        navigator.hardwareConcurrency || 0,
-    ];
-
-    return btoa(components.join('|'));
-}
-
-// ============================================
-// EXPORTS
-// ============================================
-
-export const Security = {
-    sanitizeInput,
-    sanitizeEmail,
-    sanitizeName,
-    isValidEmail,
-    checkPasswordStrength,
-    generateCSRFToken,
-    getCSRFToken,
-    validateCSRFToken,
-    checkRateLimit,
-    resetRateLimit,
-    generateSecureToken,
-    generateSessionId,
-    hashSHA256,
-    getDeviceFingerprint,
 };
 
-export default Security;
+// ============================================
+// XSS PREVENTION
+// ============================================
+export function escapeHtml(unsafe: string): string {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// ============================================
+// SESSION TIMEOUT
+// ============================================
+let sessionTimeoutId: NodeJS.Timeout | null = null;
+
+export function startSessionTimeout(
+    onTimeout: () => void,
+    timeoutMinutes: number = 30
+): void {
+    clearSessionTimeout();
+    const timeoutMs = timeoutMinutes * 60 * 1000;
+
+    sessionTimeoutId = setTimeout(() => {
+        onTimeout();
+    }, timeoutMs);
+}
+
+export function clearSessionTimeout(): void {
+    if (sessionTimeoutId) {
+        clearTimeout(sessionTimeoutId);
+        sessionTimeoutId = null;
+    }
+}
+
+export function resetSessionTimeout(
+    onTimeout: () => void,
+    timeoutMinutes: number = 30
+): void {
+    startSessionTimeout(onTimeout, timeoutMinutes);
+}

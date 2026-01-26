@@ -2,6 +2,16 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
+import {
+    sanitizeEmail,
+    sanitizeName,
+    validatePassword,
+    isValidEmail,
+    secureStorage,
+    checkRateLimit,
+    startSessionTimeout,
+    clearSessionTimeout
+} from '@/lib/security';
 
 // ============================================
 // API BASE URL
@@ -127,34 +137,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const clearStorage = () => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
+        secureStorage.clearAll();
+        clearSessionTimeout();
     };
 
     // ============================================
     // LOGIN WITH CREDENTIALS
     // ============================================
     const login = useCallback(async (email: string, password: string, remember = false): Promise<boolean> => {
+        // Rate limiting check
+        if (!checkRateLimit('login', 5, 60000)) {
+            const error = 'Too many login attempts. Please wait a minute.';
+            setState(prev => ({ ...prev, error, isLoading: false }));
+            toast.error(error);
+            return false;
+        }
+
         setState(prev => ({ ...prev, isLoading: true, error: null }));
 
         try {
-            if (!email || !password) {
-                throw new Error('Email and password are required');
+            // Validate and sanitize inputs
+            const cleanEmail = sanitizeEmail(email);
+            if (!isValidEmail(cleanEmail)) {
+                throw new Error('Please enter a valid email address');
+            }
+
+            if (!password || password.length < 1) {
+                throw new Error('Password is required');
             }
 
             // Try backend first
             try {
                 const response = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, rememberMe: remember })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': process.env.NEXT_PUBLIC_API_KEY || 'defenddos-api-key'
+                    },
+                    body: JSON.stringify({ email: cleanEmail, password, rememberMe: remember })
                 });
 
                 const data = await response.json();
 
                 if (data.success && data.token && data.user) {
-                    localStorage.setItem(TOKEN_KEY, data.token);
-                    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+                    // Use secure storage
+                    secureStorage.setToken(data.token);
+                    if (data.refreshToken) {
+                        secureStorage.setRefreshToken(data.refreshToken);
+                    }
+                    secureStorage.setUser(data.user);
 
                     setState({
                         user: data.user,
@@ -163,14 +194,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         error: null,
                     });
 
-                    toast.success('Welcome back!');
+                    // Start session timeout
+                    const timeoutMinutes = parseInt(process.env.SESSION_TIMEOUT || '30');
+                    startSessionTimeout(() => {
+                        toast.error('Session expired. Please login again.');
+                        clearStorage();
+                        setState({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                            error: null,
+                        });
+                    }, timeoutMinutes);
+
+                    toast.success(`Welcome back, ${data.user.name}!`);
                     return true;
                 } else {
-                    throw new Error(data.message || 'Login failed');
+                    throw new Error(data.message || 'Invalid credentials');
                 }
             } catch (fetchError: any) {
-                // If backend is down, fall back to demo login
-                if (email === 'demo@defenddos.com' && password === 'demo123') {
+                // Only allow demo mode if enabled
+                const demoModeEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
+
+                if (demoModeEnabled && cleanEmail === 'demo@defenddos.com' && password === 'demo123') {
                     const demoUser: User = {
                         id: 'demo-user-1',
                         email: 'demo@defenddos.com',
@@ -180,8 +226,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     };
 
                     const demoToken = 'demo-token-' + Date.now();
-                    localStorage.setItem(TOKEN_KEY, demoToken);
-                    localStorage.setItem(USER_KEY, JSON.stringify(demoUser));
+                    secureStorage.setToken(demoToken);
+                    secureStorage.setUser(demoUser);
 
                     setState({
                         user: demoUser,
@@ -190,10 +236,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         error: null,
                     });
 
-                    toast.success('Welcome back! (Demo mode)');
+                    toast.success('Welcome! (Demo Mode)');
                     return true;
                 }
 
+                // If backend unavailable and no demo mode, show helpful error
+                if (fetchError.message?.includes('fetch')) {
+                    throw new Error('Cannot connect to authentication server. Please try again later.');
+                }
                 throw fetchError;
             }
         } catch (error: any) {
@@ -346,25 +396,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // REGISTER
     // ============================================
     const register = useCallback(async (name: string, email: string, password: string): Promise<boolean> => {
+        // Rate limiting
+        if (!checkRateLimit('register', 3, 300000)) { // 3 attempts per 5 minutes
+            const error = 'Too many registration attempts. Please wait 5 minutes.';
+            setState(prev => ({ ...prev, error, isLoading: false }));
+            toast.error(error);
+            return false;
+        }
+
         setState(prev => ({ ...prev, isLoading: true, error: null }));
 
         try {
-            if (!name.trim()) throw new Error('Name is required');
-            if (!email) throw new Error('Email is required');
-            if (password.length < 6) throw new Error('Password must be at least 6 characters');
+            // Validate and sanitize inputs
+            const cleanName = sanitizeName(name);
+            const cleanEmail = sanitizeEmail(email);
+
+            if (!cleanName || cleanName.length < 2) {
+                throw new Error('Name must be at least 2 characters');
+            }
+
+            if (!isValidEmail(cleanEmail)) {
+                throw new Error('Please enter a valid email address');
+            }
+
+            // Validate password strength
+            const passwordCheck = validatePassword(password);
+            if (!passwordCheck.isValid) {
+                throw new Error(passwordCheck.feedback[0] || 'Password does not meet requirements');
+            }
 
             try {
                 const response = await fetch(`${API_BASE}/auth/register`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': process.env.NEXT_PUBLIC_API_KEY || 'defenddos-api-key'
+                    },
+                    body: JSON.stringify({ name: cleanName, email: cleanEmail, password })
                 });
 
                 const data = await response.json();
 
                 if (data.success && data.token && data.user) {
-                    localStorage.setItem(TOKEN_KEY, data.token);
-                    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+                    secureStorage.setToken(data.token);
+                    if (data.refreshToken) {
+                        secureStorage.setRefreshToken(data.refreshToken);
+                    }
+                    secureStorage.setUser(data.user);
 
                     setState({
                         user: data.user,
@@ -373,34 +451,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         error: null,
                     });
 
-                    toast.success('Account created successfully!');
+                    // Start session timeout
+                    const timeoutMinutes = parseInt(process.env.SESSION_TIMEOUT || '30');
+                    startSessionTimeout(() => {
+                        toast.error('Session expired. Please login again.');
+                        clearStorage();
+                        setState({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                            error: null,
+                        });
+                    }, timeoutMinutes);
+
+                    toast.success(`Welcome to DefenDDoS, ${data.user.name}!`);
                     return true;
                 } else {
                     throw new Error(data.message || 'Registration failed');
                 }
             } catch (fetchError: any) {
-                // If backend is down, create demo account
-                const demoUser: User = {
-                    id: `user-${Date.now()}`,
-                    email: email.toLowerCase(),
-                    name: name.trim(),
-                    role: 'user',
-                    provider: 'credentials',
-                };
+                // Only allow demo registration if enabled
+                const demoModeEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
 
-                const token = 'demo-token-' + Date.now();
-                localStorage.setItem(TOKEN_KEY, token);
-                localStorage.setItem(USER_KEY, JSON.stringify(demoUser));
+                if (demoModeEnabled) {
+                    const demoUser: User = {
+                        id: `user-${Date.now()}`,
+                        email: cleanEmail,
+                        name: cleanName,
+                        role: 'user',
+                        provider: 'credentials',
+                    };
 
-                setState({
-                    user: demoUser,
-                    isAuthenticated: true,
-                    isLoading: false,
-                    error: null,
-                });
+                    const token = 'demo-token-' + Date.now();
+                    secureStorage.setToken(token);
+                    secureStorage.setUser(demoUser);
 
-                toast.success('Account created! (Demo mode)');
-                return true;
+                    setState({
+                        user: demoUser,
+                        isAuthenticated: true,
+                        isLoading: false,
+                        error: null,
+                    });
+
+                    toast.success('Account created! (Demo Mode)');
+                    return true;
+                }
+
+                // If backend unavailable and no demo mode, show helpful error
+                if (fetchError.message?.includes('fetch')) {
+                    throw new Error('Cannot connect to authentication server. Please try again later.');
+                }
+                throw fetchError;
             }
         } catch (error: any) {
             const message = error.message || 'Registration failed';

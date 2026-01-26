@@ -1,78 +1,49 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Track blocked requests to prevent spam
-const blockedRequestCache = new Map<string, { count: number; lastSeen: number }>();
-const CACHE_DURATION = 60000; // 1 minute
-const LOG_THRESHOLD = 5; // Only log every 5th request from same path
+// Define public routes that don't require authentication
+const publicRoutes = ['/', '/login', '/register'];
 
-function logBlockedRequest(pathname: string) {
-  const now = Date.now();
-  const cached = blockedRequestCache.get(pathname);
-  
-  if (!cached || now - cached.lastSeen > CACHE_DURATION) {
-    // First time or cache expired - log it
-    blockedRequestCache.set(pathname, { count: 1, lastSeen: now });
-    console.log(`🛡️ Security: Blocked suspicious request: ${pathname}`);
-  } else {
-    // Increment counter
-    cached.count++;
-    cached.lastSeen = now;
-    
-    // Only log periodically to avoid spam
-    if (cached.count % LOG_THRESHOLD === 0) {
-      console.log(`🛡️ Security: Blocked ${cached.count} attempts to: ${pathname}`);
-    }
-  }
-}
+// Define protected routes that require authentication
+const protectedRoutes = ['/dashboard'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Block known malicious/tracking endpoints
-  const blockedPaths = [
-    '/hybridaction',
-    '/zybTrackerStatisticsAction',
-    '/tracker',
-    '/analytics-tracker',
-    '/adware',
-  ];
+  // Check if the route is public
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith('/api/'));
 
-  // Check if path matches any blocked patterns
-  const isBlocked = blockedPaths.some(blocked => 
-    pathname.toLowerCase().includes(blocked.toLowerCase())
-  );
+  // Check if the route is protected
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
-  if (isBlocked) {
-    logBlockedRequest(pathname);
-    // Return 403 Forbidden instead of 404 to discourage further attempts
-    return new NextResponse('Forbidden', { status: 403 });
+  // Get token from cookies or authorization header
+  const token = request.cookies.get('defenddos_auth_token')?.value ||
+    request.headers.get('authorization')?.replace('Bearer ', '');
+
+  // If trying to access a protected route without a token, redirect to login
+  if (isProtectedRoute && !token) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // Block requests with suspicious query parameters
-  const suspiciousParams = ['__callback__', 'zybTracker'];
-  const searchParams = request.nextUrl.searchParams;
-  
-  for (const param of suspiciousParams) {
-    if (Array.from(searchParams.keys()).some(key => key.includes(param))) {
-      logBlockedRequest(`${pathname}?${param}=*`);
-      return new NextResponse('Forbidden', { status: 403 });
-    }
+  // If logged in and trying to access login/register, redirect to dashboard
+  if (token && (pathname === '/login' || pathname === '/register')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Continue with normal request processing
   return NextResponse.next();
 }
 
-// Configure which paths the middleware should run on
+// Configure which routes use this middleware
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public assets (images, etc.)
+     * - public files (public folder)
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
