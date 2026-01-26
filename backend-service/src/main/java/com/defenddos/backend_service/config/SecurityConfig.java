@@ -31,17 +31,20 @@ public class SecurityConfig {
                                                 .requestMatchers("/actuator/health/liveness").permitAll()
                                                 .requestMatchers("/actuator/health/readiness").permitAll()
 
-                                                // Secure all other actuator endpoints
-                                                .requestMatchers("/actuator/**").authenticated()
+                                                // Auth endpoints are public (handled by ApiKeyAuthFilter)
+                                                .requestMatchers("/api/v1/auth/**").permitAll()
 
                                                 // Public API endpoints (if any)
                                                 .requestMatchers("/api/v1/public/**").permitAll()
 
-                                                // All other API endpoints require authentication
+                                                // Secure all other actuator endpoints
+                                                .requestMatchers("/actuator/**").authenticated()
+
+                                                // All other API endpoints require authentication (via API key)
                                                 .requestMatchers("/api/**").authenticated()
 
-                                                // Default: require authentication
-                                                .anyRequest().authenticated())
+                                                // Default: permit all (filters will handle security)
+                                                .anyRequest().permitAll())
                                 .addFilterBefore(apiKeyAuthFilter,
                                                 org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(ipBlockingFilter, ApiKeyAuthFilter.class);

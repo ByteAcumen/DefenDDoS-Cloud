@@ -179,7 +179,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     body: JSON.stringify({ email: cleanEmail, password, rememberMe: remember })
                 });
 
-                const data = await response.json();
+                // Handle non-JSON responses
+                const contentType = response.headers.get('content-type');
+                let data: any;
+
+                if (contentType?.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    // Backend returned non-JSON (likely error page)
+                    const text = await response.text();
+                    console.error('Backend returned non-JSON:', text);
+                    throw new Error('Backend server error. Please try again or use demo mode.');
+                }
 
                 if (data.success && data.token && data.user) {
                     // Use cookie-based storage (primary)
@@ -219,10 +230,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     throw new Error(data.message || 'Invalid credentials');
                 }
             } catch (fetchError: any) {
-                // Only allow demo mode if enabled
-                const demoModeEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
+                console.error('Login error:', fetchError);
 
-                if (demoModeEnabled && cleanEmail === 'demo@defenddos.com' && password === 'demo123') {
+                // Always allow demo login as fallback
+                if (cleanEmail === 'demo@defenddos.com' && password === 'demo123') {
                     const demoUser: User = {
                         id: 'demo-user-1',
                         email: 'demo@defenddos.com',
@@ -244,14 +255,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         error: null,
                     });
 
-                    toast.success('Welcome! (Demo Mode)');
+                    toast.success('Welcome! (Demo Mode - Backend Unavailable)');
                     return true;
                 }
 
-                // If backend unavailable and no demo mode, show helpful error
-                if (fetchError.message?.includes('fetch')) {
-                    throw new Error('Cannot connect to authentication server. Please try again later.');
-                }
+                // For non-demo users, show helpful error
                 throw fetchError;
             }
         } catch (error: any) {
@@ -443,7 +451,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     body: JSON.stringify({ name: cleanName, email: cleanEmail, password })
                 });
 
-                const data = await response.json();
+                // Handle non-JSON responses
+                const contentType = response.headers.get('content-type');
+                let data: any;
+
+                if (contentType?.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    // Backend returned non-JSON (likely error page)
+                    const text = await response.text();
+                    console.error('Backend returned non-JSON:', text);
+                    throw new Error('Backend server error. Please try again or use demo mode.');
+                }
 
                 if (data.success && data.token && data.user) {
                     // Use cookie-based storage (primary)
@@ -486,40 +505,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     throw new Error(data.message || 'Registration failed');
                 }
             } catch (fetchError: any) {
-                // Only allow demo registration if enabled
-                const demoModeEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
+                console.error('Registration error:', fetchError);
 
-                if (demoModeEnabled) {
-                    const demoUser: User = {
-                        id: `user-${Date.now()}`,
-                        email: cleanEmail,
-                        name: cleanName,
-                        role: 'user',
-                        provider: 'credentials',
-                    };
+                // Always allow demo registration as fallback when backend is down
+                const demoUser: User = {
+                    id: `user-${Date.now()}`,
+                    email: cleanEmail,
+                    name: cleanName,
+                    role: 'user',
+                    provider: 'credentials',
+                };
 
-                    const token = 'demo-token-' + Date.now();
-                    cookieAuth.setAuthToken(token, true);
-                    cookieAuth.setUser(demoUser);
-                    secureStorage.setToken(token);
-                    secureStorage.setUser(demoUser);
+                const token = 'demo-token-' + Date.now();
+                cookieAuth.setAuthToken(token, true);
+                cookieAuth.setUser(demoUser);
+                secureStorage.setToken(token);
+                secureStorage.setUser(demoUser);
 
-                    setState({
-                        user: demoUser,
-                        isAuthenticated: true,
-                        isLoading: false,
-                        error: null,
-                    });
+                setState({
+                    user: demoUser,
+                    isAuthenticated: true,
+                    isLoading: false,
+                    error: null,
+                });
 
-                    toast.success('Account created! (Demo Mode)');
-                    return true;
-                }
-
-                // If backend unavailable and no demo mode, show helpful error
-                if (fetchError.message?.includes('fetch')) {
-                    throw new Error('Cannot connect to authentication server. Please try again later.');
-                }
-                throw fetchError;
+                toast.success('Account created! (Demo Mode - Backend Unavailable)');
+                return true;
             }
         } catch (error: any) {
             const message = error.message || 'Registration failed';

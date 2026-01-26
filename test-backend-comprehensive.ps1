@@ -6,7 +6,7 @@ Write-Host "   DefenDDoS Backend - Full Test Suite" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`n" -ForegroundColor Gray
 
-$backend = "http://localhost:8081"
+$backend = "http://localhost:8082"
 $apiBase = "$backend/api/v1"
 $mlService = "http://localhost:8000"
 
