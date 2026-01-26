@@ -1,15 +1,9 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-<<<<<<< HEAD
 // Base API configuration - CORRECTED to match backend port
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'; // FIXED: Backend runs on 8081
 const ML_SERVICE_URL = process.env.NEXT_PUBLIC_ML_URL || 'http://localhost:8000';
-=======
-// Base API configuration - matches API documentation
-const API_BASE = '/api/backend'; // Use proxy to avoid CORS and target correct port 8081
-const ML_SERVICE_URL = 'http://localhost:8000';
->>>>>>> restored-legacy-frontend
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -17,11 +11,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-<<<<<<< HEAD
     'X-API-KEY': process.env.NEXT_PUBLIC_API_KEY || 'defenddos-api-key',
-=======
-    'X-API-KEY': 'defenddos-api-key', // Required by backend
->>>>>>> restored-legacy-frontend
   },
 });
 
