@@ -12,6 +12,7 @@ import {
     startSessionTimeout,
     clearSessionTimeout
 } from '@/lib/security';
+import { cookieAuth } from '@/lib/cookies';
 
 // ============================================
 // API BASE URL
@@ -137,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const clearStorage = () => {
+        cookieAuth.clearAuth();
         secureStorage.clearAll();
         clearSessionTimeout();
     };
@@ -180,11 +182,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const data = await response.json();
 
                 if (data.success && data.token && data.user) {
-                    // Use secure storage
-                    secureStorage.setToken(data.token);
+                    // Use cookie-based storage (primary)
+                    cookieAuth.setAuthToken(data.token, remember);
                     if (data.refreshToken) {
-                        secureStorage.setRefreshToken(data.refreshToken);
+                        cookieAuth.setRefreshToken(data.refreshToken);
                     }
+                    cookieAuth.setUser(data.user);
+
+                    // Backup in secure storage
+                    secureStorage.setToken(data.token);
                     secureStorage.setUser(data.user);
 
                     setState({
@@ -226,6 +232,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     };
 
                     const demoToken = 'demo-token-' + Date.now();
+                    cookieAuth.setAuthToken(demoToken, remember);
+                    cookieAuth.setUser(demoUser);
                     secureStorage.setToken(demoToken);
                     secureStorage.setUser(demoUser);
 
@@ -438,6 +446,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const data = await response.json();
 
                 if (data.success && data.token && data.user) {
+                    // Use cookie-based storage (primary)
+                    cookieAuth.setAuthToken(data.token, true); // Remember me true for registration
+                    if (data.refreshToken) {
+                        cookieAuth.setRefreshToken(data.refreshToken);
+                    }
+                    cookieAuth.setUser(data.user);
+
+                    // Backup in secure storage
                     secureStorage.setToken(data.token);
                     if (data.refreshToken) {
                         secureStorage.setRefreshToken(data.refreshToken);
@@ -483,6 +499,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     };
 
                     const token = 'demo-token-' + Date.now();
+                    cookieAuth.setAuthToken(token, true);
+                    cookieAuth.setUser(demoUser);
                     secureStorage.setToken(token);
                     secureStorage.setUser(demoUser);
 
