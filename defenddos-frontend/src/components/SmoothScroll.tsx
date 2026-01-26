@@ -1,49 +1,28 @@
 'use client';
 
-<<<<<<< HEAD
-import { useEffect, useRef } from 'react';
-=======
 import { useEffect, useRef, useCallback } from 'react';
->>>>>>> restored-legacy-frontend
 import Lenis from 'lenis';
 
 interface SmoothScrollProps {
     children: React.ReactNode;
 }
 
-<<<<<<< HEAD
-=======
 // Global Lenis instance storage
 let lenisInstance: Lenis | null = null;
 
->>>>>>> restored-legacy-frontend
 export function SmoothScroll({ children }: SmoothScrollProps) {
     const lenisRef = useRef<Lenis | null>(null);
 
     useEffect(() => {
-<<<<<<< HEAD
-        // Initialize Lenis smooth scroll
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-=======
         // Initialize Lenis smooth scroll with optimized settings
         const lenis = new Lenis({
             duration: 1.2,
             easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential easing
->>>>>>> restored-legacy-frontend
             orientation: 'vertical',
             gestureOrientation: 'vertical',
             smoothWheel: true,
             wheelMultiplier: 1,
             touchMultiplier: 2,
-<<<<<<< HEAD
-        });
-
-        lenisRef.current = lenis;
-
-        // Animation frame loop
-=======
             infinite: false,
         });
 
@@ -54,7 +33,6 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
         (window as any).__lenis = lenis;
 
         // Animation frame loop for smooth scrolling
->>>>>>> restored-legacy-frontend
         function raf(time: number) {
             lenis.raf(time);
             requestAnimationFrame(raf);
@@ -62,11 +40,6 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
 
         requestAnimationFrame(raf);
 
-<<<<<<< HEAD
-        // Cleanup on unmount
-        return () => {
-            lenis.destroy();
-=======
         // Handle anchor link clicks for smooth scrolling
         const handleAnchorClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -92,25 +65,12 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
             lenis.destroy();
             lenisInstance = null;
             (window as any).__lenis = null;
->>>>>>> restored-legacy-frontend
         };
     }, []);
 
     return <>{children}</>;
 }
 
-<<<<<<< HEAD
-// Hook to access Lenis instance
-export function useSmoothScroll() {
-    const scrollTo = (target: string | number, options?: { offset?: number; duration?: number }) => {
-        const lenis = (window as any).__lenis;
-        if (lenis) {
-            lenis.scrollTo(target, options);
-        }
-    };
-
-    return { scrollTo };
-=======
 /**
  * Hook to access smooth scroll functionality
  * @returns Object with scrollTo function and current Lenis instance
@@ -160,7 +120,6 @@ export function useSmoothScroll() {
         scrollToElement,
         lenis: lenisInstance
     };
->>>>>>> restored-legacy-frontend
 }
 
 export default SmoothScroll;
