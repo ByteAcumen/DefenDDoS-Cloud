@@ -45,10 +45,6 @@ const PageLoadingSkeleton = () => (
 
 export function EnhancedRootLayout({ children }: EnhancedRootLayoutProps) {
   const pathname = usePathname();
-<<<<<<< HEAD
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-=======
->>>>>>> restored-legacy-frontend
 
   // Memoize the query client to prevent recreation on every render
   const queryClient = useMemo(() => createQueryClient(), []);
@@ -65,63 +61,6 @@ export function EnhancedRootLayout({ children }: EnhancedRootLayoutProps) {
             {showLayout ? (
               <>
                 {/* Enhanced Header */}
-<<<<<<< HEAD
-                <EnhancedHeader
-                  onMenuToggle={toggleSidebar}
-                  isSidebarOpen={isSidebarOpen}
-                />
-
-                {/* Enhanced Sidebar */}
-                <EnhancedSidebar
-                  isOpen={isSidebarOpen}
-                  onClose={closeSidebar}
-                />
-
-                {/* Main Content Area */}
-                <main className="pt-14 sm:pt-16 lg:ml-[280px] min-h-screen transition-all duration-200 bg-background">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={pathname}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -12 }}
-                      transition={{
-                        duration: 0.2,
-                        ease: [0.4, 0, 0.2, 1]
-                      }}
-                      className="p-3 sm:p-4 lg:p-6 xl:p-8"
-                    >
-                      <Suspense fallback={<PageLoadingSkeleton />}>
-                        {children}
-                      </Suspense>
-                    </motion.div>
-                  </AnimatePresence>
-                </main>
-
-                {/* Connection Status Indicator */}
-                <ConnectionStatus />
-              </>
-            ) : (
-              // No layout for auth pages
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={pathname}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.02 }}
-                  transition={{
-                    duration: 0.2,
-                    ease: [0.4, 0, 0.2, 1]
-                  }}
-                >
-                  <Suspense fallback={<PageLoadingSkeleton />}>
-                    {children}
-                  </Suspense>
-                </motion.div>
-              </AnimatePresence>
-            )}
-
-=======
                 <EnhancedHeader />
 
                 {/* Main Content Area */}
@@ -168,7 +107,6 @@ export function EnhancedRootLayout({ children }: EnhancedRootLayoutProps) {
               </AnimatePresence>
             )}
 
->>>>>>> restored-legacy-frontend
             {/* Enhanced Toast Notifications with Theme Support */}
             <Toaster
               position="top-right"
