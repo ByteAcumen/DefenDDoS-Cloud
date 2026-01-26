@@ -6,6 +6,7 @@ import com.defenddos.backend_service.dto.MLPredictionResponse;
 import com.defenddos.backend_service.model.EnrichedTrafficPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -13,6 +14,8 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 /**
  * Service for ML-based DDoS detection.
@@ -22,6 +25,10 @@ import java.time.Duration;
 public class MLDetectionService {
 
     private static final Logger logger = LoggerFactory.getLogger(MLDetectionService.class);
+    
+    // Cache ML predictions for 30 seconds to reduce load
+    private final Map<String, CachedPrediction> predictionCache = new ConcurrentHashMap<>();
+    private static final long CACHE_TTL_MS = 30_000; // 30 seconds
 
     private final WebClient mlServiceWebClient;
     private final DefenDDoSProperties properties;
@@ -55,11 +62,19 @@ public class MLDetectionService {
             return Mono.empty();
         }
 
+        // Check cache first
+        String cacheKey = enrichedTraffic.getSourceIp();
+        CachedPrediction cached = predictionCache.get(cacheKey);
+        if (cached != null && !cached.isExpired()) {
+            logger.debug("Using cached ML prediction for IP: {}", cacheKey);
+            return Mono.just(cached.response);
+        }
+
         try {
             // Convert enriched traffic to ML request DTO
             MLPredictionRequest request = buildMLRequest(enrichedTraffic);
 
-            // Call ML service with retry logic
+            // Call ML service with retry logic and increased timeout
             return mlServiceWebClient.post()
                     .uri("/predict")
                     .bodyValue(request)
@@ -70,6 +85,15 @@ public class MLDetectionService {
                             Duration.ofSeconds(1)).filter(throwable -> throwable instanceof WebClientResponseException))
                     .timeout(Duration.ofSeconds(properties.getMlService().getTimeoutSeconds()))
                     .doOnNext(response -> {
+                        // Cache the successful response
+                        if (response != null) {
+                            predictionCache.put(cacheKey, new CachedPrediction(response));
+                            // Cleanup expired entries periodically
+                            if (predictionCache.size() > 1000) {
+                                cleanupExpiredCache();
+                            }
+                        }
+                        
                         if (response != null && response.getIsAttack()) {
                             logger.info(
                                     "ML Detection: Attack detected from {} - Type: {}, Confidence: {}, Severity: {}",
@@ -165,6 +189,31 @@ public class MLDetectionService {
         } catch (Exception e) {
             logger.warn("ML service health check failed: {}", e.getMessage());
             return false;
+        }
+    }
+    
+    /**
+     * Cleanup expired cache entries to prevent memory leak
+     */
+    private void cleanupExpiredCache() {
+        predictionCache.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        logger.debug("Cleaned up expired ML prediction cache entries. Current size: {}", predictionCache.size());
+    }
+    
+    /**
+     * Inner class for caching ML predictions with TTL
+     */
+    private static class CachedPrediction {
+        private final MLPredictionResponse response;
+        private final long timestamp;
+        
+        public CachedPrediction(MLPredictionResponse response) {
+            this.response = response;
+            this.timestamp = System.currentTimeMillis();
+        }
+        
+        public boolean isExpired() {
+            return (System.currentTimeMillis() - timestamp) > CACHE_TTL_MS;
         }
     }
 }

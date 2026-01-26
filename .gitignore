@@ -48,6 +48,15 @@ buildNumber.properties
 # OS generated files
 .DS_Store
 .DS_Store?
+
+# Test reports and results
+test-reports/
+**/test-results-*.json
+**/attack-simulation-report-*.json
+
+# K6 binary (download locally when needed)
+k6.exe
+k6
 ._*
 .Spotlight-V100
 .Trashes

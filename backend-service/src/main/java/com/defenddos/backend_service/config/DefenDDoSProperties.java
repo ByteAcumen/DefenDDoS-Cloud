@@ -256,8 +256,8 @@ public class DefenDDoSProperties {
     public static class MlService {
         private boolean enabled = false;
         private String url = "http://localhost:8000";
-        private int timeoutSeconds = 10;
-        private int retryAttempts = 3;
+        private int timeoutSeconds = 30; // Increased from 10 to 30 seconds
+        private int retryAttempts = 2; // Reduced retries to fail faster
 
         // Getters and setters
         public boolean isEnabled() {

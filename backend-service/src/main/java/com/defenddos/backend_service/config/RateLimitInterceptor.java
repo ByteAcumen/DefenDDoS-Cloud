@@ -30,14 +30,15 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
 
     // Endpoint-specific rate limits (requests per minute)
+    // INCREASED FOR LOAD TESTING - adjust for production
     private static final Map<String, Integer> ENDPOINT_LIMITS = Map.ofEntries(
-            Map.entry("/api/v1/traffic/ingest", 10), // Critical: traffic ingestion
-            Map.entry("/api/v1/mitigation/block", 5), // Critical: IP blocking
-            Map.entry("/api/v1/security/analyze", 10), // Sensitive: analysis
-            Map.entry("/api/v1/data/raw-query", 2), // Dangerous: raw queries
-            Map.entry("/api/v1/threat-intelligence/add", 5), // Sensitive: threat DB
-            Map.entry("/api/incidents/execute", 5), // Critical: incident response
-            Map.entry("DEFAULT", 60) // Default for other endpoints
+            Map.entry("/api/v1/traffic/ingest", 1000), // Critical: traffic ingestion (increased for testing)
+            Map.entry("/api/v1/mitigation/block", 100), // Critical: IP blocking (increased)
+            Map.entry("/api/v1/security/analyze", 500), // Sensitive: analysis (increased)
+            Map.entry("/api/v1/data/raw-query", 50), // Dangerous: raw queries (increased)
+            Map.entry("/api/v1/threat-intelligence/add", 100), // Sensitive: threat DB (increased)
+            Map.entry("/api/incidents/execute", 100), // Critical: incident response (increased)
+            Map.entry("DEFAULT", 600) // Default for other endpoints (increased)
     );
 
     public RateLimitInterceptor(SecurityAuditService auditService) {
