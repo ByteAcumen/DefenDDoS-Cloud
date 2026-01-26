@@ -37,17 +37,18 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 2. Skip check for explicity public API endpoints
-        if (path.startsWith("/api/v1/public/")) {
+        // 2. Skip check for explicity public API endpoints and Auth endpoints
+        if (path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         // 3. For all other /api/ and /actuator/ paths, enforce API Key
-        // If it's not api or actuator (e.g. static files, error), let it pass (SecurityConfig will handle if needed)
+        // If it's not api or actuator (e.g. static files, error), let it pass
+        // (SecurityConfig will handle if needed)
         if (!path.startsWith("/api/") && !path.startsWith("/actuator/")) {
-             filterChain.doFilter(request, response);
-             return;
+            filterChain.doFilter(request, response);
+            return;
         }
 
         String requestApiKey = request.getHeader("X-API-KEY");
